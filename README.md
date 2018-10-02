@@ -1,7 +1,5 @@
 # Infolog - Prolog Sourcecode Analysis System
 
-[![Build Status](https://travis-ci.org/bendisposto/infolog.svg?branch=master)](https://travis-ci.org/bendisposto/infolog)
-
 # Building the Infolog System
 
 Infolog is a set of tools that can be used to extract and visualize information about the ProB source code or other Prolog projects. The make file contains a number of build targets that can be used to trigger the analyzers. 
