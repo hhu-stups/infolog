@@ -46,32 +46,32 @@ infolog.pdf: infolog.dot Makefile
 	open infolog.pdf
 
 prob_test:
-	$(PREPARE_ENV); rlwrap sicstus -l prolog-analyzer/analyzer.pl --goal "analyze('$(PROBPATH)/src/tools.pl')."
+	$(PREPARE_ENV); sicstus -l prolog-analyzer/analyzer.pl --goal "analyze('$(PROBPATH)/src/tools.pl')."
 
 prob_test_verbose:
-	$(PREPARE_ENV); rlwrap sicstus -l prolog-analyzer/analyzer.pl --goal "analyze('$(PROBPATH)/src/tools.pl'),export(user_output)."
+	$(PREPARE_ENV); sicstus -l prolog-analyzer/analyzer.pl --goal "analyze('$(PROBPATH)/src/tools.pl'),export(user_output)."
 
 prob_tk: prolog-analyzer/tcltk_calls.pl
-	$(PREPARE_ENV); rlwrap sicstus -l prolog-analyzer/analyzer.pl --goal "analyze(['$(PROBPATH)/src/prob_tcltk.pl'])."
+	$(PREPARE_ENV); sicstus -l prolog-analyzer/analyzer.pl --goal "analyze(['$(PROBPATH)/src/prob_tcltk.pl'])."
 
 prob_cli:
-	$(PREPARE_ENV); rlwrap sicstus -l prolog-analyzer/analyzer.pl --goal "analyze(['$(PROBPATH)/src/prob_cli.pl'])."
+	$(PREPARE_ENV); sicstus -l prolog-analyzer/analyzer.pl --goal "analyze(['$(PROBPATH)/src/prob_cli.pl'])."
 
 prob: $(PLDEPS)
 	@echo "analyzing ProB Tcl/Tk and probcli together"
-	$(PREPARE_ENV); rlwrap sicstus -l prolog-analyzer/analyzer.pl --goal "analyze($(TARGETS),'prolog-analyzer/meta_user_pred_cache.pl'), update_problem_db('$(PROBPATH)/src/infolog_problem_db.pl')."
+	$(PREPARE_ENV); sicstus -l prolog-analyzer/analyzer.pl --goal "analyze($(TARGETS),'prolog-analyzer/meta_user_pred_cache.pl'), update_problem_db('$(PROBPATH)/src/infolog_problem_db.pl')."
 
 update:
 	@echo "analyzing $(PROJECTPATH) starting from $(MAINFILE)"
-	$(PREPARE_ENV); rlwrap sicstus -l prolog-analyzer/analyzer.pl --goal "analyze($(TARGETS),'prolog-analyzer/meta_user_pred_cache.pl')."
+	$(PREPARE_ENV); sicstus -l prolog-analyzer/analyzer.pl --goal "analyze($(TARGETS),'prolog-analyzer/meta_user_pred_cache.pl')."
 
 infolog_problems.csv:  prolog-analyzer/meta_user_pred_cache.pl $(PLDEPS) prolog-analyzer/documentation.pl
 	@echo "Generating CSV File"
-	$(PREPARE_ENV); rlwrap sicstus -l prolog-analyzer/analyzer.pl --goal "analyze($(TARGETS),'prolog-analyzer/meta_user_pred_cache.pl'), lint_to_csv_file('infolog_problems.csv'), halt."
+	$(PREPARE_ENV); sicstus -l prolog-analyzer/analyzer.pl --goal "analyze($(TARGETS),'prolog-analyzer/meta_user_pred_cache.pl'), lint_to_csv_file('infolog_problems.csv'), halt."
 
 infolog.edn:  prolog-analyzer/meta_user_pred_cache.pl $(PLDEPS) prolog-analyzer/meta_preds.pl prolog-analyzer/documentation.pl
 	@echo "Generating Data for website"
-	$(PREPARE_ENV); rlwrap sicstus -l prolog-analyzer/analyzer.pl --goal "analyze($(TARGETS),'prolog-analyzer/meta_user_pred_cache.pl'),  export_to_clj_file('resources/public/infolog.edn'), halt."
+	$(PREPARE_ENV); sicstus -l prolog-analyzer/analyzer.pl --goal "analyze($(TARGETS),'prolog-analyzer/meta_user_pred_cache.pl'),  export_to_clj_file('resources/public/infolog.edn'), halt."
 
 indy.edn:
 	@echo "Generating indentation analysis"
