@@ -13,7 +13,8 @@ stages:
 
 variables:
   DEPLOYMENT_IMAGE_VERSION: "0.2"
-  PROB_IMAGE_VERSION: "0.2-sicstus4.4.1"
+  SICSTUS_VERSION: "4.4.1"
+  DEBIAN_FRONTEND: noninteractive
 
 build:
   stage: build
@@ -27,12 +28,13 @@ build:
 
 infolog:
   stage: infolog
-  image: $CI_REGISTRY/stups/prob/prob-docker/prob/test:$PROB_IMAGE_VERSION
+  image: $CI_REGISTRY/stups/prob/prob-docker/sicstus:${SICSTUS_VERSION}
   variables:
+    LEIN_ROOT: "1"
     PROBPATH: "/prob_prolog"
     PROB2_PATH: "/prob2"
   before_script:
-    - apt-get update && apt-get install -y ack-grep time
+    - apt-get update && apt-get install -y ack-grep git-core openjdk-8-jdk time
 
     - rm -f prolog-analyzer/meta_preds.pl
     - rm -f prolog-analyzer/tcltk_calls.pl
