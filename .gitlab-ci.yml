@@ -1,0 +1,69 @@
+# Notes:
+# maybe these jobs should be part of the prob_prolog repository (?)
+#
+# Variables defined in gitlab group settings
+#
+# DEPLOY_PASSWORD
+# DEPLOY_HOST
+# DEPLOY_USER
+stages:
+  - build
+  - infolog
+  - deploy
+
+variables:
+  DEPLOYMENT_IMAGE_VERSION: "0.2"
+  PROB_IMAGE_VERSION: "0.2-sicstus4.4.1"
+
+build:
+  stage: build
+  image: clojure:lein-2.8.1-alpine
+  script:
+    - lein compile
+    - lein cljsbuild once
+  only:
+    - pushes
+
+
+infolog:
+  stage: infolog
+  image: $CI_REGISTRY/stups/prob/prob-docker/prob/test:$PROB_IMAGE_VERSION
+  variables:
+    PROBPATH: "/prob_prolog"
+    PROB2_PATH: "/prob2"
+  before_script:
+    - apt-get update && apt-get install -y ack-grep time
+
+    - rm -f prolog-analyzer/meta_preds.pl
+    - rm -f prolog-analyzer/tcltk_calls.pl
+    - rm -f prolog-analyzer/java_calls.pl
+    - rm -f prolog-analyzer/tcltk_calls.ack
+
+    - git clone --depth=1 https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.cs.uni-duesseldorf.de/stups/prob/prob_prolog.git ${PROBPATH}
+
+    - git clone --depth=1 git://github.com/bendisposto/prob2.git ${PROB2_PATH}
+  script:
+    - make clean ui indy.edn infolog.edn docs
+  except:
+    - pushes
+  artifacts:
+    expire_in: 1 hour
+    paths:
+      - resources/public
+
+
+
+deploy:
+  stage: deploy
+  image: $CI_REGISTRY/stups/prob/prob-docker/internal/deployment:$DEPLOYMENT_IMAGE_VERSION
+  variables:
+    GIT_STRATEGY: none
+    DEPLOY_REMOTEDIR: "stupshome/stups/infolog"
+  script:
+    - cd resources/public
+    - travis-custom-deploy sftp .
+  environment:
+    name: doc/infolog
+    url: https://www3.hhu.de/stups/infolog/
+  except:
+    - pushes
