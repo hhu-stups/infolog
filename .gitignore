@@ -27,3 +27,7 @@ figwheel_server.log
 database.edn
 infolog.edn
 indy.edn
+resources/public
+analyzers/doc.jar
+prolog-analyzer/documentation.pl
+prolog-analyzer/java_calls.pl
