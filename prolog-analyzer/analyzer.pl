@@ -1497,7 +1497,7 @@ analyze_clj(InputFile,OutputFile) :-
 % @param CacheFile path to the meta-predicate cache
 analyze(InputFiles,CacheFile) :-
     format('~nINFOLOG: Loading meta_predicate cache file ~w~n',[CacheFile]),
-    ensure_loaded(CacheFile),
+    my_ensure_loaded(CacheFile),
     catch(ensure_loaded('documentation.pl'),_,catch(ensure_loaded('prolog-analyzer/documentation.pl'),_,print('Documentation coverage data could not be loaded.'))),
     analyse_files(InputFiles),
     (meta_user_pred_cache_needs_updating -> write_meta_user_pred_cache(CacheFile) ; format('INFOLOG: meta_predicate cache up-to-date.~n',[])).
@@ -1506,6 +1506,10 @@ analyze(InputFiles,CacheFile) :-
 % A simpler variant of analyze/2. Uses a default path for the cache.
 % @param InputFiles a list of files to analyze
 analyze(InputFiles) :- analyze(InputFiles,'meta_user_pred_cache.pl').
+
+my_ensure_loaded('') :- !.
+my_ensure_loaded(File) :-
+ catch(ensure_loaded(File),_,format(user_error,'### File ~w could not be loaded.~n',[File])).
 
 %%
 % Analyzes a list of files.
