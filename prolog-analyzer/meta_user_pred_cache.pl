@@ -241,3 +241,4 @@ meta_user_pred(delay_setof_check_wf(_7791,_7793,_7795,_7797,_7799,_7801,_7803,_7
 meta_user_pred(block_findall_check(_7791,_7793,_7795,_7797,_7799,_7801,_7803,_7805,_7807,_7809),delay,'.'(meta_arg(3,0),'.'(meta_arg(5,0),'.'(meta_arg(6,0),[])))).
 meta_user_pred(not_with_enum_warning_delay(_7791,_7793),b_interpreter,'.'(meta_arg(1,0),[])).
 meta_user_pred(not_with_enum_warning_and_possible_delay(_7791,_7793),b_interpreter,'.'(meta_arg(1,0),[])).
+meta_user_pred(try_post_constraint(_7791),clpfd_interface,'.'(meta_arg(1,0),[])).
