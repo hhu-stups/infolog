@@ -108,8 +108,9 @@ prolog-analyzer/java_calls.pl: Makefile
 
 clean_tcltk:
 	rm prolog-analyzer/tcltk_calls.ack
-prolog-analyzer/tcltk_calls.ack: $(ABSOLUTE_PROB_PATH)/tcl/*.tcl
-	ack -o '(?<=prolog)\s+("?(\{|\()?)([[a-zA-Z0-9_:\s]*)' $(ABSOLUTE_PROB_PATH)/tcl/*.tcl < /dev/null > prolog-analyzer/tcltk_calls.ack
+
+prolog-analyzer/tcltk_calls.ack: $(ABSOLUTE_PROB_PATH)/tcl/*.tcl Makefile
+	ack -o '(?<=prolog)\s+(interruptable_call\()?("?(\{|\()?)([[a-zA-Z0-9_:\s]*)' $(ABSOLUTE_PROB_PATH)/tcl/*.tcl < /dev/null > prolog-analyzer/tcltk_calls.ack
 	ack -o '(?<=prologmnf)\s+("?(\{|\()?)([[a-zA-Z0-9_:\s]*)' $(ABSOLUTE_PROB_PATH)/tcl/*.tcl < /dev/null >> prolog-analyzer/tcltk_calls.ack
 	ack -o '(?<=prologmnfi)\s+("?(\{|\()?)([[a-zA-Z0-9_:\s]*)' $(ABSOLUTE_PROB_PATH)/tcl/*.tcl < /dev/null >> prolog-analyzer/tcltk_calls.ack
 
@@ -146,3 +147,8 @@ latex-out/infolog.tex: infolog_problems.csv analyzers/doc.jar
 infologdoc.pdf: latex-out/infolog.tex
 	cd latex-out; pdflatex infolog.tex && pdflatex infolog.tex
 	cp latex-out/infolog.pdf infologdoc.pdf
+
+
+simple1: examples/simple1/main.pl examples/simple1/tools.pl Makefile
+	echo "Running Infolog on a simple example and generating : simple1/infolog_problems.csv"
+	sicstus -l prolog-analyzer/analyzer.pl --goal "analyze('examples/simple1/main.pl',''),lint_to_csv_file('examples/simple1/infolog_problems.csv'), halt."
