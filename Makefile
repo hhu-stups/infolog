@@ -14,13 +14,16 @@ ifdef PROJECTPATH
   TARGETS=['$(PROJECTPATH)/$(MAINFILE)']
 endif
 
+# where do we store ProB specific files:
+PROBINFODIR=prob-files
+
 ifdef PROBPATH
     ABSOLUTE_PROB_PATH=$(realpath $(PROBPATH))
     PREPARE_ENV=export PROB_HOME=$(ABSOLUTE_PROB_PATH)
     ABSOLUTE_PROJECT_PATH=$(ABSOLUTE_PROB_PATH)/src
     PROJECTPATH=$(PROBPATH)
     MAINFILE=prob_tcltk.pl
-    PLDEPS=prolog-analyzer/tcltk_calls.pl prolog-analyzer/java_calls.pl
+    PLDEPS=$(PROBINFODIR)/tcltk_calls.pl $(PROBINFODIR)/java_calls.pl
     TARGETS=['$(PROBPATH)/src/prob_tcltk.pl','$(PROBPATH)/src/prob_cli.pl']
 endif
 
@@ -46,32 +49,26 @@ infolog.pdf: infolog.dot Makefile
 	open infolog.pdf
 
 prob_test:
-	$(PREPARE_ENV); sicstus -l prolog-analyzer/analyzer.pl --goal "analyze('$(PROBPATH)/src/tools.pl')."
+	$(PREPARE_ENV); sicstus -l prolog-analyzer/analyzer.pl --goal "analyze('$(PROBPATH)/src/tools.pl','$(PROBINFODIR)/meta_user_pred_cache.pl','$(PROBINFODIR)/tcltk_calls.pl')."
 
 prob_test_verbose:
 	$(PREPARE_ENV); sicstus -l prolog-analyzer/analyzer.pl --goal "analyze('$(PROBPATH)/src/tools.pl'),export(user_output)."
 
-prob_tk: prolog-analyzer/tcltk_calls.pl
-	$(PREPARE_ENV); sicstus -l prolog-analyzer/analyzer.pl --goal "analyze(['$(PROBPATH)/src/prob_tcltk.pl'])."
-
-prob_cli:
-	$(PREPARE_ENV); sicstus -l prolog-analyzer/analyzer.pl --goal "analyze(['$(PROBPATH)/src/prob_cli.pl'])."
-
 prob: $(PLDEPS)
 	@echo "analyzing ProB Tcl/Tk and probcli together"
-	$(PREPARE_ENV); sicstus -l prolog-analyzer/analyzer.pl --goal "analyze($(TARGETS),'prolog-analyzer/meta_user_pred_cache.pl'), update_problem_db('$(PROBPATH)/src/infolog_problem_db.pl')."
+	$(PREPARE_ENV); sicstus -l prolog-analyzer/analyzer.pl --goal "analyze($(TARGETS),'$(PROBINFODIR)/meta_user_pred_cache.pl','$(PROBINFODIR)/tcltk_calls.pl'), update_problem_db('$(PROBPATH)/src/infolog_problem_db.pl')."
 
 update:
 	@echo "analyzing $(PROJECTPATH) starting from $(MAINFILE)"
-	$(PREPARE_ENV); sicstus -l prolog-analyzer/analyzer.pl --goal "analyze($(TARGETS),'prolog-analyzer/meta_user_pred_cache.pl')."
+	$(PREPARE_ENV); sicstus -l prolog-analyzer/analyzer.pl --goal "analyze($(TARGETS),'$(PROBINFODIR)/meta_user_pred_cache.pl','$(PROBINFODIR)/tcltk_calls.pl')."
 
-infolog_problems.csv:  prolog-analyzer/meta_user_pred_cache.pl $(PLDEPS) prolog-analyzer/documentation.pl
+infolog_problems.csv:  $(PROBINFODIR)/meta_user_pred_cache.pl $(PLDEPS) $(PROBINFODIR)/documentation.pl $(PROBINFODIR)/tcltk_calls.pl
 	@echo "Generating CSV File"
-	$(PREPARE_ENV); sicstus -l prolog-analyzer/analyzer.pl --goal "analyze($(TARGETS),'prolog-analyzer/meta_user_pred_cache.pl'), lint_to_csv_file('infolog_problems.csv'), halt."
+	$(PREPARE_ENV); sicstus -l prolog-analyzer/analyzer.pl --goal "analyze($(TARGETS),'$(PROBINFODIR)/meta_user_pred_cache.pl','$(PROBINFODIR)/tcltk_calls.pl'), lint_to_csv_file('infolog_problems.csv'), halt."
 
-infolog.edn:  prolog-analyzer/meta_user_pred_cache.pl $(PLDEPS) prolog-analyzer/meta_preds.pl prolog-analyzer/documentation.pl
+infolog.edn:  $(PROBINFODIR)/meta_user_pred_cache.pl $(PLDEPS) prolog-analyzer/meta_preds.pl $(PROBINFODIR)/documentation.pl $(PROBINFODIR)/tcltk_calls.pl
 	@echo "Generating Data for website"
-	$(PREPARE_ENV); sicstus -l prolog-analyzer/analyzer.pl --goal "analyze($(TARGETS),'prolog-analyzer/meta_user_pred_cache.pl'),  export_to_clj_file('resources/public/infolog.edn'), halt."
+	$(PREPARE_ENV); sicstus -l prolog-analyzer/analyzer.pl --goal "analyze($(TARGETS),'$(PROBINFODIR)/meta_user_pred_cache.pl','$(PROBINFODIR)/tcltk_calls.pl'),  export_to_clj_file('resources/public/infolog.edn'), halt."
 
 indy.edn:
 	@echo "Generating indentation analysis"
@@ -82,9 +79,9 @@ indy.edn:
 	@echo "]}" >> resources/public/indy.edn
 
 clean:
-	rm -f prolog-analyzer/meta_user_pred_cache.pl
-	rm -f prolog-analyzer/documentation.pl
-	echo ':- dynamic meta_user_pred/3.' > prolog-analyzer/meta_user_pred_cache.pl
+	rm -f $(PROBINFODIR)/meta_user_pred_cache.pl
+	rm -f $(PROBINFODIR)/documentation.pl
+	echo ':- dynamic meta_user_pred/3.' > $(PROBINFODIR)/meta_user_pred_cache.pl
 	rm -f infolog_problems*.csv
 	rm -f resources/public/infolog.edn
 	rm -f resources/public/indy.edn
@@ -101,26 +98,26 @@ run_server:
 
 server: ui infolog.edn indy.edn docs run_server
 
-prolog-analyzer/java_calls.pl: Makefile
+$(PROBINFODIR)/java_calls.pl: Makefile
 	@echo "Extracting Prolog calls from ProB 2.0 Java API using PROB2_PATH (which must be set)"
-	@echo ":- dynamic java_call/2." > prolog-analyzer/java_calls.pl
-	find $(PROB2_PATH) -type f \( -iname \*.java -o -iname \*.groovy \) -exec perl -ne'print "java_call($$1,\"'{}'\").\n" if /.*?PROLOG_COMMAND_NAME\s*=\s*\"(.*)\"/' {} \; >> prolog-analyzer/java_calls.pl
+	@echo ":- dynamic java_call/2." > $(PROBINFODIR)/java_calls.pl
+	find $(PROB2_PATH) -type f \( -iname \*.java -o -iname \*.groovy \) -exec perl -ne'print "java_call($$1,\"'{}'\").\n" if /.*?PROLOG_COMMAND_NAME\s*=\s*\"(.*)\"/' {} \; >> $(PROBINFODIR)/java_calls.pl
 
 clean_tcltk:
-	rm prolog-analyzer/tcltk_calls.ack
+	rm $(PROBINFODIR)/tcltk_calls.ack
 
-prolog-analyzer/tcltk_calls.ack: $(ABSOLUTE_PROB_PATH)/tcl/*.tcl Makefile
-	ack -o '(?<=prolog)\s+(interruptable_call\()?("?(\{|\()?)([[a-zA-Z0-9_:\s]*)' $(ABSOLUTE_PROB_PATH)/tcl/*.tcl < /dev/null > prolog-analyzer/tcltk_calls.ack
-	ack -o '(?<=prologmnf)\s+("?(\{|\()?)([[a-zA-Z0-9_:\s]*)' $(ABSOLUTE_PROB_PATH)/tcl/*.tcl < /dev/null >> prolog-analyzer/tcltk_calls.ack
-	ack -o '(?<=prologmnfi)\s+("?(\{|\()?)([[a-zA-Z0-9_:\s]*)' $(ABSOLUTE_PROB_PATH)/tcl/*.tcl < /dev/null >> prolog-analyzer/tcltk_calls.ack
+$(PROBINFODIR)/tcltk_calls.ack: $(ABSOLUTE_PROB_PATH)/tcl/*.tcl Makefile
+	ack -o '(?<=prolog)\s+(interruptable_call\()?("?(\{|\()?)([[a-zA-Z0-9_:\s]*)' $(ABSOLUTE_PROB_PATH)/tcl/*.tcl < /dev/null > $(PROBINFODIR)/tcltk_calls.ack
+	ack -o '(?<=prologmnf)\s+("?(\{|\()?)([[a-zA-Z0-9_:\s]*)' $(ABSOLUTE_PROB_PATH)/tcl/*.tcl < /dev/null >> $(PROBINFODIR)/tcltk_calls.ack
+	ack -o '(?<=prologmnfi)\s+("?(\{|\()?)([[a-zA-Z0-9_:\s]*)' $(ABSOLUTE_PROB_PATH)/tcl/*.tcl < /dev/null >> $(PROBINFODIR)/tcltk_calls.ack
 
-prolog-analyzer/tcltk_calls.pl: prolog-analyzer/tcltk_calls.ack prolog-analyzer/tcltk_call_importer.pl
+$(PROBINFODIR)/tcltk_calls.pl: $(PROBINFODIR)/tcltk_calls.ack prolog-analyzer/tcltk_call_importer.pl
 	@echo "Importing Calls from ProB Tcl/Tk interface"
-	sicstus -l prolog-analyzer/tcltk_call_importer.pl --goal "process_file('prolog-analyzer/tcltk_calls.ack'),generate_prolog_file('prolog-analyzer/tcltk_calls.pl'),halt."
+	sicstus -l prolog-analyzer/tcltk_call_importer.pl --goal "process_file('$(PROBINFODIR)/tcltk_calls.ack'),generate_prolog_file('$(PROBINFODIR)/tcltk_calls.pl'),halt."
 
-cp_tcltk_calls: prolog-analyzer/tcltk_calls.pl
+cp_tcltk_calls: $(PROBINFODIR)/tcltk_calls.pl
 	@echo "Copying tcltk_calls.pl to ProB src/tcltk directory (for BBEdit search)"
-	cp prolog-analyzer/tcltk_calls.pl $(ABSOLUTE_PROB_PATH)/src/tcltk/
+	cp $(PROBINFODIR)/tcltk_calls.pl $(ABSOLUTE_PROB_PATH)/src/tcltk/
 
 prolog-analyzer/meta_preds.pl: prolog-analyzer/meta_pred_generator.pl
 	sicstus -l prolog-analyzer/meta_pred_generator.pl --goal "tell('prolog-analyzer/meta_preds.pl'),gen,told,halt."
@@ -129,8 +126,8 @@ analyzers/doc.jar:
 	javac analyzers/doc/Main.java analyzers/doc/de/hhu/infolog/doc/*.java
 	cd analyzers/doc; jar cfm ../doc.jar Manifest.txt *.class de/hhu/infolog/doc/*.class
 
-prolog-analyzer/documentation.pl: analyzers/doc.jar
-	java -jar analyzers/doc.jar $(ABSOLUTE_PROJECT_PATH) --no-docs --export-prolog prolog-analyzer/documentation.pl
+$(PROBINFODIR)/documentation.pl: analyzers/doc.jar
+	java -jar analyzers/doc.jar $(ABSOLUTE_PROJECT_PATH) --no-docs --export-prolog $(PROBINFODIR)/documentation.pl
 
 docs: infolog_problems.csv analyzers/doc.jar
 	mkdir -p resources/public/docs
@@ -151,4 +148,4 @@ infologdoc.pdf: latex-out/infolog.tex
 
 simple1: examples/simple1/main.pl examples/simple1/tools.pl Makefile
 	echo "Running Infolog on a simple example and generating : simple1/infolog_problems.csv"
-	sicstus -l prolog-analyzer/analyzer.pl --goal "analyze('examples/simple1/main.pl',''),lint_to_csv_file('examples/simple1/infolog_problems.csv'), halt."
+	sicstus -l prolog-analyzer/analyzer.pl --goal "analyze('examples/simple1/main.pl'),lint_to_csv_file('examples/simple1/infolog_problems.csv'), halt."

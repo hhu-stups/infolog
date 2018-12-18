@@ -5,6 +5,10 @@
 
 portray_message(informational, _).
 
+% external calls from Tcl/Tk (Java still to do)
+:- use_module(tcltk_calls).
+% tcltk_call/4: tcltk_call(Name,Module,TclTkFile,Line)
+
 :- use_module(escaper).
 :- use_module(infolog_tools).
 %:- use_module(clojure_exporter,[export_to_clj_file/1, export/1]).
@@ -319,9 +323,6 @@ gen_db_entries(_) :- print('----'),nl.
 
 % =========================================
 
-% external calls from Tcl/Tk (Java still to do)
-:- use_module(tcltk_calls, [tcltk_call/4]).
-% tcltkc_call/4: tcltk_call(Name,Module,TclTkFile,Line)
 
 
 /**
@@ -1490,26 +1491,34 @@ analyze_clj(InputFile,OutputFile) :-
     export_to_clj_file(OutputFile),
     stop_analysis_timer(T3).
 
+
 %%
 % This is the usual entry-point.
 % @example analyze("/path/to/prob/src/prob_tcltk.pl", "name of meta_user_pred_cache")
 % @param InputFiles a list of files to analyze
 % @param CacheFile path to the meta-predicate cache
-analyze(InputFiles,CacheFile) :-
+analyze(InputFiles,CacheFile,TclCallFile) :-
     format('~nINFOLOG: Loading meta_predicate cache file ~w~n',[CacheFile]),
     my_ensure_loaded(CacheFile),
-    catch(ensure_loaded('documentation.pl'),_,catch(ensure_loaded('prolog-analyzer/documentation.pl'),_,print('Documentation coverage data could not be loaded.'))),
+    my_ensure_loaded(TclCallFile),
+    catch(ensure_loaded('documentation.pl'),_,
+       catch(ensure_loaded('prolog-analyzer/documentation.pl'),_,
+         print('Documentation coverage data could not be loaded.'))),
     analyse_files(InputFiles),
-    (meta_user_pred_cache_needs_updating -> write_meta_user_pred_cache(CacheFile) ; format('INFOLOG: meta_predicate cache up-to-date.~n',[])).
+    (meta_user_pred_cache_needs_updating -> write_meta_user_pred_cache(CacheFile)
+     ; format('INFOLOG: meta_predicate cache up-to-date.~n',[])).
 
 %%
 % A simpler variant of analyze/2. Uses a default path for the cache.
 % @param InputFiles a list of files to analyze
-analyze(InputFiles) :- analyze(InputFiles,'meta_user_pred_cache.pl').
+analyze(InputFiles) :- analyze(InputFiles,'','').
 
 my_ensure_loaded('') :- !.
 my_ensure_loaded(File) :-
  catch(ensure_loaded(File),_,format(user_error,'### File ~w could not be loaded.~n',[File])).
+
+
+
 
 %%
 % Analyzes a list of files.
