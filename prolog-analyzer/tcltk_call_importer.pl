@@ -1,6 +1,6 @@
 :- module(tcltk_call_importer,[process_file/1, tcltk_call/4, generate_prolog_file/1]).
 
-
+% TO DO: treat things like 'interruptable_call(tcltk_debug_properties_or_op'
 process_file(Filename) :-
     print(opening(Filename)),nl,
     open(Filename,read,S),
