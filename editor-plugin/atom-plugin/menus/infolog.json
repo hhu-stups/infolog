@@ -1,0 +1,26 @@
+{
+  "context-menu": {
+    "atom-text-editor": [
+      {
+        "label": "Toggle infolog",
+        "command": "infolog:toggle"
+      }
+    ]
+  },
+  "menu": [
+    {
+      "label": "Packages",
+      "submenu": [
+        {
+          "label": "infolog",
+          "submenu": [
+            {
+              "label": "Toggle",
+              "command": "infolog:toggle"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
