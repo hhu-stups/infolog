@@ -1,6 +1,8 @@
 'use babel';
 
 import InfologView from './infolog-view';
+import InfologServer from './infolog-server'
+import InfologClient from './infolog-client'
 import { CompositeDisposable } from 'atom';
 
 export default {
@@ -14,6 +16,15 @@ export default {
     this.modalPanel = atom.workspace.addModalPanel({
       item: this.infologView.getElement(),
       visible: false
+    });
+
+    this.infologClient = new InfologClient();
+    this.infolog = new InfologServer();
+    this.infolog.onStart((port) => {
+      this.infologClient.connect(port);
+    });
+    this.infolog.onStop(() => {
+      this.infologClient.disconnect();
     });
 
     // Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
@@ -38,7 +49,9 @@ export default {
   },
 
   toggle() {
-    console.log('Infolog was toggled!');
+    this.modalPanel.isVisible() ?
+    this.infolog.stopInfolog() :
+    this.infolog.startInfolog();
     return (
       this.modalPanel.isVisible() ?
       this.modalPanel.hide() :

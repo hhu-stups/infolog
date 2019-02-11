@@ -1,5 +1,5 @@
 {
-  "name": "infolog",
+  "name": "Infolog",
   "main": "./lib/infolog",
   "version": "0.0.0",
   "description": "An Atom editor plugin for the Infolog program analysis tool",

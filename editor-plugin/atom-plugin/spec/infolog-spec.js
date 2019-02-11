@@ -12,7 +12,7 @@ describe('Infolog', () => {
 
   beforeEach(() => {
     workspaceElement = atom.views.getView(atom.workspace);
-    activationPromise = atom.packages.activatePackage('infolog');
+    activationPromise = atom.packages.activatePackage('Infolog');
   });
 
   describe('when the infolog:toggle event is triggered', () => {
