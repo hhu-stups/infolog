@@ -27,11 +27,7 @@ export default class InfologServer {
     this.infolog.stdout.on("data", (data) => {
       console.log(`stdout: ${data}`);
       if (this.port == -1) {
-        var portRegex = /Listening on port (\w+)/;
-        this.port = portRegex.exec(data)[1];
-        this.callbacks["start"].forEach((callback) => {
-          callback(this.port);
-        });
+        this._sendStartCallbacks(data);
       }
     });
     this.infolog.stderr.on("data", (data) => {
@@ -42,12 +38,23 @@ export default class InfologServer {
     })
   }
 
+  _sendStartCallbacks(data)
+  {
+    var portRegex = /Listening on port (\w+)/.exec(data);
+    if (portRegex) {
+      this.port = portRegex[1];
+      this.callbacks["start"].forEach((callback) => {
+        callback(this.port);
+      });
+    }
+  }
+
   stopInfolog()
   {
     this.callbacks["stop"].forEach((callback) => {
       callback();
     });
-    this.infolog.kill();
+    //this.infolog.kill();
     this.port = -1;
   }
 

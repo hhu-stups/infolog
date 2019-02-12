@@ -1,4 +1,4 @@
-:- module(json, [parse_json/2]).
+:- module(json, [parse_json/2, json_number/3]).
 
 :- use_module(library(assoc)).
 
@@ -37,14 +37,16 @@ array_values([V])    --> ws, json_value(V), ws.
 array_values([V|Vs]) --> ws, json_value(V), ws, ",", array_values(Vs).
 
 % Numbers
-% sanity checking is very basic but should suffice since all input comes from our code
-json_number(N) --> ws, number_digits(D), ws,
-                   { [F|_] = D, ([F] = "-" ; is_digit(F)), number_codes(N, D) }.
+% sanity checking is basic but should suffice since all input comes from our code
+json_number(N) --> ws, number_digits(D), ws, { number_codes(N, D) }.
 
-number_digits([D|Ds]) --> [D], number_digits(Ds).
+number_digits([D|Ds]) --> [D], number_digits(Ds), { valid_digit(D) }.
 number_digits([])     --> [].
 
 is_digit(D) :- [L] = "0", [U] = "9", (D >= L, D =< U).
+
+valid_digit(D) :- is_digit(D).
+valid_digit(D) :- [D] = "e" ; [D] = "E" ; [D] = "+" ; [D] = "-" ; [D] = ".".
 
 % Strings
 json_string(S) --> ws, "\"", string_terminals(S), "\"", ws.
