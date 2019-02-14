@@ -2,7 +2,7 @@
 
 :- use_module(library(assoc)).
 
-parse_json(J, S) :- phrase(json_value(J), S).
+parse_json(S, J) :- phrase(json_value(J), S).
 
 json_value(V) --> json_object(V).
 json_value(V) --> json_array(V).
@@ -38,7 +38,7 @@ array_values([V|Vs]) --> ws, json_value(V), ws, ",", array_values(Vs).
 
 % Numbers
 % sanity checking is basic but should suffice since all input comes from our code
-json_number(N) --> ws, number_digits(D), ws, { number_codes(N, D) }.
+json_number(N) --> ws, number_digits(D), ws, { D \= [], number_codes(N, D) }.
 
 number_digits([D|Ds]) --> [D], number_digits(Ds), { valid_digit(D) }.
 number_digits([])     --> [].

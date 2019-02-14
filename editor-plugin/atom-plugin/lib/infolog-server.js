@@ -27,18 +27,18 @@ export default class InfologServer {
     this.infolog.stdout.on("data", (data) => {
       console.log(`stdout: ${data}`);
       if (this.port == -1) {
-        this._sendStartCallbacks(data);
+        this._startup(data);
       }
     });
     this.infolog.stderr.on("data", (data) => {
-      console.log(`stdout: ${data}`);
+      console.log(`stderr: ${data}`);
     });
     this.infolog.on("close", (code) => {
       console.log(`Process exited with code ${code}`);
     })
   }
 
-  _sendStartCallbacks(data)
+  _startup(data)
   {
     var portRegex = /Listening on port (\w+)/.exec(data);
     if (portRegex) {
