@@ -20,9 +20,9 @@ handle_connection(Stream) :-
     read_single_message(Stream, Message),
     handle_message(Message, Response),
     send_response(Stream, Response),
+    flush_output(Stream),
     flush_output(user_output),
     handle_connection(Stream).
-
 handle_connection(Stream) :-
     peek_byte(Stream, B), B = -1,
     format("Connection closed.~n", []),
@@ -43,7 +43,6 @@ read_header(Stream, Header, PreviousCodes) :-
     get_byte(Stream, B),
     reverse([B|PreviousCodes], HeaderText),
     phrase(header(Header), HeaderText).
-
 read_header(Stream, Header, PreviousCodes) :-
     get_byte(Stream, B),
     read_header(Stream, Header, [B|PreviousCodes]).
@@ -63,5 +62,36 @@ read_n_bytes(Stream, N, Out, Acc) :-
     Nn is N - 1,
     read_n_bytes(Stream, Nn, Out, [B|Acc]).
 
-handle_message(_,_).
-send_response(_,_).
+handle_message(Message, Response) :-
+    jsonrpc_message(Message, Method, ID, Params),
+    message_handler(Method, Params, ID, Result, Error),
+    jsonrpc_response(Result, Error, ID, Response).
+
+jsonrpc_message(Message, Method, ID, Params) :-
+    json_object_get(Message, 'method', Method),
+    json_object_get(Message, 'id', ID),
+    json_object_get(Message, 'params', Params).
+
+message_handler(_,_,_,null,13).
+
+jsonrpc_response(null, Error, ID, Response) :-
+    json_object_create(
+        ['jsonrpc'-'2.0',
+         'id'-ID,
+         'error'-Error], Response).
+
+jsonrpc_response(Result, null, ID, Response) :-
+    json_object_create(
+        ['jsonrpc'-'2.0',
+         'id'-ID,
+         'result'-Result], Response).
+
+% Response
+send_response(Stream, Response) :-
+    parse_json(ResponseStr, Response),
+    write_bytes(Stream, ResponseStr).
+
+write_bytes(_, []).
+write_bytes(Stream, [Byte|Bytes]) :-
+    put_byte(Stream, Byte),
+    write_bytes(Stream, Bytes).

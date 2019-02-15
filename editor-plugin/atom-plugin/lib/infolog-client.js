@@ -17,6 +17,9 @@ export default class InfologClient {
       this.port = port;
       this.lspMethodCall("testmethod", {});
     });
+    this.client.on("data", (data) => {
+      console.log(`client: ${data}`);
+    });
   }
 
   disconnect()
