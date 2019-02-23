@@ -1,12 +1,13 @@
 {
-  "name": "Infolog",
+  "name": "infolog",
   "main": "./lib/infolog",
   "version": "0.0.0",
   "description": "An Atom editor plugin for the Infolog program analysis tool",
   "keywords": [
   ],
   "activationCommands": {
-    "atom-workspace": "infolog:toggle"
+    "atom-workspace": "infolog:toggle",
+    "atom-workspace": "infolog:analyzeFile"
   },
   "repository": "https://gitlab.cs.uni-duesseldorf.de/stups/prob/infolog",
   "license": "All rights reserved",

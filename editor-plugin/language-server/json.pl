@@ -145,3 +145,11 @@ json_to_codes(J, S) :-
     atom(J),
     atom_codes(J, Codes),
     append(["\"", Codes, "\""], S).
+
+%% Terms
+json_to_codes(J, S) :-
+    compound(J),
+    J =.. [_, Term, Arity],
+    atom_codes(Term, TermCodes),
+    number_codes(Arity, ArityCodes),
+    append(["\"", TermCodes, "/", ArityCodes, "\""], S).

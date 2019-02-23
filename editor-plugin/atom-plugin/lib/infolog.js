@@ -27,16 +27,21 @@ export default {
       this.infologClient.disconnect();
     });
 
-    // Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
     this.subscriptions = new CompositeDisposable();
 
-    // Register command that toggles this view
-    this.subscriptions.add(atom.commands.add('atom-workspace', {
-      'infolog:toggle': () => this.toggle()
-    }));
+    // register commands
+    this.subscriptions.add(
+      atom.commands.add('atom-workspace', {
+        'infolog:toggle': () => this.toggle()}),
+      atom.commands.add('atom-workspace', {
+        'infolog:analyzeFile': () => this.analyzeFile()})
+  );
   },
 
   deactivate() {
+    this.infolog.killInfolog();
+    this.infolog.destroy();
+    this.infologClient.destroy();
     this.modalPanel.destroy();
     this.subscriptions.dispose();
     this.infologView.destroy();
@@ -57,6 +62,20 @@ export default {
       this.modalPanel.hide() :
       this.modalPanel.show()
     );
+  },
+
+  analyzeFile() {
+    this.infologClient.onConnect(() => {
+      var filePath = atom.workspace.getActivePaneItem().buffer.file.path;
+      this.infologClient.methodCall("analyzeFile", {
+        "path": filePath
+      });
+    });
+    this.infologClient.onResponse((response) => {
+      console.log("Received reply to", response.id);
+      this.infolog.stopInfolog();
+    });
+    this.infolog.startInfolog();
   }
 
 };

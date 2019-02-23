@@ -7,10 +7,12 @@ export default class InfologServer {
 
   constructor(
     infologDirectory = "C:\\Users\\Julian\\Documents\\Studium\\Semester\\9\ -\ WS1819\\Bachelorarbeit\\Infolog\\infolog",
+    projectDirectory = atom.project.getPaths()[0],
     sicstusExecutable = "sicstus")
     {
       this.infologDirectory = infologDirectory;
       this.serverDirectory = path.join(infologDirectory, "editor-plugin", "language-server");
+      this.projectDirectory = projectDirectory || process.cwd();
       this.sicstusExecutable = sicstusExecutable;
       this.port = -1;
 
@@ -23,7 +25,10 @@ export default class InfologServer {
       ['-l',
       path.join(this.serverDirectory, "server.pl"),
       "--goal",
-      "start_server,halt."]);
+      "start_server,halt."],
+      {
+        cwd: this.projectDirectory
+      });
     this.infolog.stdout.on("data", (data) => {
       console.log(`stdout: ${data}`);
       if (this.port == -1) {
@@ -51,11 +56,19 @@ export default class InfologServer {
 
   stopInfolog()
   {
-    this.callbacks["stop"].forEach((callback) => {
-      callback();
-    });
-    //this.infolog.kill();
+    if (this.port != -1)
+    {
+      this.callbacks["stop"].forEach((callback) => {
+        callback();
+      });
+    }
     this.port = -1;
+  }
+
+  killInfolog()
+  {
+    this.stopInfolog();
+    this.infolog.kill();
   }
 
   onStart(callback)

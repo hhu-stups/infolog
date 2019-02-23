@@ -1,11 +1,6 @@
 {
   "context-menu": {
-    "atom-text-editor": [
-      {
-        "label": "Toggle Infolog",
-        "command": "infolog:toggle"
-      }
-    ]
+    "atom-text-editor": []
   },
   "menu": [
     {
@@ -17,6 +12,10 @@
             {
               "label": "Toggle",
               "command": "infolog:toggle"
+            },
+            {
+              "label": "Analyze file",
+              "command": "infolog:analyzeFile"
             }
           ]
         }
