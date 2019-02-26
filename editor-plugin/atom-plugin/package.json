@@ -6,7 +6,6 @@
   "keywords": [
   ],
   "activationCommands": {
-    "atom-workspace": "infolog:toggle",
     "atom-workspace": "infolog:analyzeFile"
   },
   "repository": "https://gitlab.cs.uni-duesseldorf.de/stups/prob/infolog",
@@ -15,5 +14,13 @@
     "atom": ">=1.0.0 <2.0.0"
   },
   "dependencies": {
+    "linter": "2.3.0"
+  },
+  "consumedServices": {
+    "linter-indie": {
+      "versions": {
+        "2.0.0": "consumeIndie"
+      }
+    }
   }
 }

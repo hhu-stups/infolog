@@ -1,4 +1,4 @@
-:- module(handlers,
+:- module('infolog-handlers',
           [message_handler/5,
            handle_testmethod/4]).
 
@@ -10,7 +10,7 @@ message_handler('analyzeFile', Params, ID, Result, Error) :- handle_analyzeFile(
 
 
 % Handlers
-handle_analyzeFile(Params, ID, Result, null) :-
+handle_analyzeFile(Params, _, Result, null) :-
     json_object_get(Params, 'path', Path),
     format("In handler!~n", []),
     flush_output(user_output),

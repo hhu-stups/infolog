@@ -23,9 +23,9 @@ export default class InfologServer {
   {
     this.infolog = spawn(this.sicstusExecutable,
       ['-l',
-      path.join(this.serverDirectory, "server.pl"),
+      path.join(this.serverDirectory, "infolog-server.pl"),
       "--goal",
-      "start_server,halt."],
+      "'infolog-server':start_server,halt."],
       {
         cwd: this.projectDirectory
       });
@@ -45,7 +45,7 @@ export default class InfologServer {
 
   _startup(data)
   {
-    var portRegex = /Listening on port (\w+)/.exec(data);
+    const portRegex = /Listening on port (\w+)/.exec(data);
     if (portRegex) {
       this.port = portRegex[1];
       this.callbacks["start"].forEach((callback) => {

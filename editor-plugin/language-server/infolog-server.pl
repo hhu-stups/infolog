@@ -1,13 +1,12 @@
-%:- module(language-server, []).
+:- module('infolog-server', [start_server/1]).
 
 :- use_module(library(sockets)).
 :- use_module(library(lists)).
 :- use_module(json).
-:- use_module(handlers).
+:- use_module('infolog-handlers').
 
 % Connection handling
 start_server :-
-    Port = '11833',
     format("Starting Infolog server~n", []),
     socket_server_open(inet('',Port), Socket, [loopback(true)]),
     format("Listening on port ~s~n", [Port]),

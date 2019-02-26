@@ -46,7 +46,7 @@ export default class InfologClient {
   methodCall(method, params) {
     if (this.port == -1)
       throw "Cannot call method: Client not connected!"
-    var message = this._jsonRpcMessage(method, params);
+    const message = this._jsonRpcMessage(method, params);
     this.client.write(this._withHeader(JSON.stringify(message)));
     return message.id;
   }
@@ -76,7 +76,7 @@ export default class InfologClient {
   }
 
   _withHeader(content) {
-    var contentLength = new TextEncoder('utf-8').encode(content).length;
+    const contentLength = new TextEncoder('utf-8').encode(content).length;
     return `Content-Length: ${contentLength}\r\n\r\n` + content;
   }
 

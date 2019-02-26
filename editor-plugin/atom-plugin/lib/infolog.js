@@ -1,8 +1,8 @@
 'use babel';
 
-import InfologView from './infolog-view';
 import InfologServer from './infolog-server'
 import InfologClient from './infolog-client'
+import InfologLinter from './infolog-linter'
 import { CompositeDisposable } from 'atom';
 
 export default {
@@ -12,12 +12,6 @@ export default {
   subscriptions: null,
 
   activate(state) {
-    this.infologView = new InfologView(state.infologViewState);
-    this.modalPanel = atom.workspace.addModalPanel({
-      item: this.infologView.getElement(),
-      visible: false
-    });
-
     this.infologClient = new InfologClient();
     this.infolog = new InfologServer();
     this.infolog.onStart((port) => {
@@ -32,50 +26,39 @@ export default {
     // register commands
     this.subscriptions.add(
       atom.commands.add('atom-workspace', {
-        'infolog:toggle': () => this.toggle()}),
-      atom.commands.add('atom-workspace', {
         'infolog:analyzeFile': () => this.analyzeFile()})
-  );
+    );
   },
 
   deactivate() {
     this.infolog.killInfolog();
     this.infolog.destroy();
     this.infologClient.destroy();
-    this.modalPanel.destroy();
+    this.linter.dispose();
     this.subscriptions.dispose();
-    this.infologView.destroy();
   },
 
   serialize() {
-    return {
-      infologViewState: this.infologView.serialize()
-    };
+    return {};
   },
 
-  toggle() {
-    this.modalPanel.isVisible() ?
-    this.infolog.stopInfolog() :
-    this.infolog.startInfolog();
-    return (
-      this.modalPanel.isVisible() ?
-      this.modalPanel.hide() :
-      this.modalPanel.show()
-    );
+  consumeIndie(registerIndie) {
+    this.linter = new InfologLinter(registerIndie({
+      name: "Infolog"
+    }));
   },
 
   analyzeFile() {
     this.infologClient.onConnect(() => {
-      var filePath = atom.workspace.getActivePaneItem().buffer.file.path;
+      const filePath = atom.workspace.getActiveTextEditor().getPath();
+      this.infologClient.onResponse((response) => {
+        this.linter.updateProblems(response.result.problems);
+        this.infolog.stopInfolog();
+      });
       this.infologClient.methodCall("analyzeFile", {
         "path": filePath
       });
     });
-    this.infologClient.onResponse((response) => {
-      console.log("Received reply to", response.id);
-      this.infolog.stopInfolog();
-    });
     this.infolog.startInfolog();
   }
-
 };

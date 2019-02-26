@@ -10,10 +10,6 @@
           "label": "Infolog",
           "submenu": [
             {
-              "label": "Toggle",
-              "command": "infolog:toggle"
-            },
-            {
               "label": "Analyze file",
               "command": "infolog:analyzeFile"
             }
