@@ -6,7 +6,9 @@
   "keywords": [
   ],
   "activationCommands": {
-    "atom-workspace": "infolog:analyzeFile"
+    "atom-workspace": [
+      "infolog:analyzeFile",
+      "infolog:clearProblems"]
   },
   "repository": "https://gitlab.cs.uni-duesseldorf.de/stups/prob/infolog",
   "license": "All rights reserved",

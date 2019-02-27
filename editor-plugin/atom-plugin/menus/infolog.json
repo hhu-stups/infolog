@@ -12,6 +12,10 @@
             {
               "label": "Analyze file",
               "command": "infolog:analyzeFile"
+            },
+            {
+              "label": "Clear problems",
+              "command": "infolog:clearProblems"
             }
           ]
         }

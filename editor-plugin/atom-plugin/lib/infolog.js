@@ -26,7 +26,9 @@ export default {
     // register commands
     this.subscriptions.add(
       atom.commands.add('atom-workspace', {
-        'infolog:analyzeFile': () => this.analyzeFile()})
+        'infolog:analyzeFile': () => this.analyzeFile()}),
+      atom.commands.add('atom-workspace', {
+        'infolog:clearProblems': () => this.clearProblems()})
     );
   },
 
@@ -60,5 +62,9 @@ export default {
       });
     });
     this.infolog.startInfolog();
+  },
+
+  clearProblems() {
+    this.linter.clearProblems();
   }
 };
