@@ -28,4 +28,9 @@ handle_analyzeFile(Params, _, Result, null) :-
         infolog_problem_flat(CatStr,Type,ErrStr,Module,Pred,File,L1,L2,Hash),
         AllProblems),
     maplist(json_object_create, AllProblems, ProblemObjects),
-    json_object_create(['problems'-ProblemObjects], Result).
+    exclude(server_code, ProblemObjects, FinalProblems),
+    json_object_create(['problems'-FinalProblems], Result).
+
+server_code(Element) :- json_object_get(Element, 'Module', 'infolog-server').
+server_code(Element) :- json_object_get(Element, 'Module', 'infolog-handlers').
+server_code(Element) :- json_object_get(Element, 'Module', 'json').

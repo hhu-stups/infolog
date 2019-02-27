@@ -14,6 +14,7 @@ export default class InfologLinter {
   }
 
   updateProblems(newProblems, fileThatTriggeredAnalysis) {
+    console.log("Raw problems", newProblems);
     let existingProblemsWithoutNew = this._existingProblemsFiltered(newProblems);
     this.problems = this._assembleAllProblems(existingProblemsWithoutNew, newProblems, fileThatTriggeredAnalysis);
     console.log("Final problems:", this.problems);
@@ -117,9 +118,9 @@ export default class InfologLinter {
   _mapExcerpt(problem, wasUnknown) {
     if (wasUnknown) {
       if (problem.L1 == "unknown" || problem.L2 == "unknown") {
-        return `(from unknown file, lines unknown): ${problem.Category}`
+        return `${problem.Category} (from unknown file, lines unknown)`
       } else {
-        return `(from unknown file, line ${problem.L1}-${problem.L2}): ${problem.Category}`;
+        return `${problem.Category} (from unknown file, line ${problem.L1}-${problem.L2})`;
       }
     } else {
       return problem.Category;
