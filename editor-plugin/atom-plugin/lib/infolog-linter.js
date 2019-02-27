@@ -13,9 +13,9 @@ export default class InfologLinter {
     this.linter.dispose();
   }
 
-  updateProblems(newProblems) {
-    const existingProblemsWithoutNew = this._existingProblemsFiltered(newProblems);
-    this.problems = this._assembleAllProblems(existingProblemsWithoutNew, newProblems);
+  updateProblems(newProblems, fileThatTriggeredAnalysis) {
+    let existingProblemsWithoutNew = this._existingProblemsFiltered(newProblems);
+    this.problems = this._assembleAllProblems(existingProblemsWithoutNew, newProblems, fileThatTriggeredAnalysis);
     console.log("Final problems:", this.problems);
     this._displayProblems();
   }
@@ -33,7 +33,10 @@ export default class InfologLinter {
     });
   }
 
-  _assembleAllProblems(existingProblemsWithoutNew, problems) {
+  _assembleAllProblems(existingProblemsWithoutNew, problems, fileThatTriggeredAnalysis) {
+    problems.forEach((problem) => {
+      problem.originFile = fileThatTriggeredAnalysis;
+    });
     return existingProblemsWithoutNew.concat(problems);
   }
 
@@ -45,13 +48,14 @@ export default class InfologLinter {
 
   _problemsToMessages() {
     return this.problems.map((problem) => {
+      const [fileName, wasUnknown] = this._mapFile(problem);
       return {
         severity: ["error", "warning"].includes(problem.Type) ? problem.Type : "info",
         location: {
-          file: this._mapFile(problem),
-          position: this._mapPosition(problem.L1, problem.L2)
+          file: fileName,
+          position: this._mapPosition(problem.L1, problem.L2, wasUnknown)
         },
-        excerpt: problem.Category,
+        excerpt: this._mapExcerpt(problem, wasUnknown),
         description: this._generateDescription(problem)
       }
     })
@@ -73,23 +77,37 @@ export default class InfologLinter {
       return file.lowerPath == fileName;
     });
     if (fileName) {
-      return fileName.path;
+      return [fileName.path, false];
     } else {
-      return "unknown"; // JTODO: return filename of file that triggered the analysis
+      return [problem.originFile, true];
     }
 
   }
 
-  _mapPosition(L1, L2) {
+  _mapPosition(L1, L2, wasUnknown) {
     // JTODO spread these ranges over the whole affected line
-    if (L1 == "unknown" || L2 == "unknown") {
+    if (L1 == "unknown" || L2 == "unknown" || wasUnknown) {
       return [[0,0], [0,0]];
     } else {
       return [[L1,0], [L2,0]];
     }
   }
 
+  _mapExcerpt(problem, wasUnknown) {
+    if (wasUnknown) {
+      if (problem.L1 == "unknown" || problem.L2 == "unknown") {
+        return `(from unknown file, lines unknown): ${problem.Category}`
+      } else {
+        return `(from unknown file, line ${problem.L1}-${problem.L2}): ${problem.Category}`;
+      }
+    } else {
+      return problem.Category;
+    }
+  }
+
   _generateDescription(problem) {
-    return "something is wrong with your code!";
+    return `${problem.Message}\n
+      in predicate ${problem.Module}:${problem.Predicate}\n
+      Hash: ${problem.Hash}`;
   }
 }

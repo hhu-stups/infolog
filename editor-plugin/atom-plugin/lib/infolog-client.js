@@ -14,6 +14,7 @@ export default class InfologClient {
     this.port = -1;
     this.messageIDs = 1;
     this.callbacks = { "connect": [], "disconnect": [], "response": [] };
+    this.originFiles = [undefined];
   }
 
   connect(port)
@@ -28,7 +29,8 @@ export default class InfologClient {
     this.client.on("data", (data) => {
       console.log(`client: ${data}`);
       this.callbacks["response"].forEach((callback) => {
-        callback(JSON.parse(data));
+        const parsedData = JSON.parse(data);
+        callback(parsedData, this.originFiles[parsedData.id]);
       });
     });
   }
@@ -44,8 +46,10 @@ export default class InfologClient {
   }
 
   methodCall(method, params) {
-    if (this.port == -1)
+    if (this.port == -1) {
       throw "Cannot call method: Client not connected!"
+    }
+    this.originFiles.push(params.path);
     const message = this._jsonRpcMessage(method, params);
     this.client.write(this._withHeader(JSON.stringify(message)));
     return message.id;
