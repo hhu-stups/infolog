@@ -53,7 +53,7 @@ export default class InfologLinter {
         severity: ["error", "warning"].includes(problem.Type) ? problem.Type : "info",
         location: {
           file: fileName,
-          position: this._mapPosition(problem.L1, problem.L2, wasUnknown)
+          position: this._mapPosition(problem.L1, problem.L2, fileName, wasUnknown)
         },
         excerpt: this._mapExcerpt(problem, wasUnknown),
         description: this._generateDescription(problem)
@@ -84,13 +84,34 @@ export default class InfologLinter {
 
   }
 
-  _mapPosition(L1, L2, wasUnknown) {
-    // JTODO spread these ranges over the whole affected line
+  _mapPosition(L1, L2, fileName, wasUnknown) {
+    let line1 = L1 - 1, line2 = L2 - 1;
+    const problemFile = atom.workspace.getTextEditors().find((editor) => {
+      return editor.getPath() == fileName;
+    });
     if (L1 == "unknown" || L2 == "unknown" || wasUnknown) {
-      return [[0,0], [0,0]];
-    } else {
-      return [[L1,0], [L2,0]];
+      line1 = 0;
+      line2 = 0;
     }
+    if (problemFile) {
+      const beginLine1 = this._beginLine(line1, problemFile);
+      const endLine2 = this._endLine(line2, problemFile);
+      return [[line1,beginLine1],[line2,endLine2]];
+    } else {
+      return [[line1,0],[line2,0]];
+    }
+  }
+
+  // determine index of first non-whitespace character of the given line
+  _beginLine(lineNumber, file) {
+    const line = file.buffer.getLines()[lineNumber];
+    const firstNonWhiteChar = line.trim()[0];
+    return firstNonWhiteChar ? line.indexOf(firstNonWhiteChar) : 0;
+  }
+
+  _endLine(lineNumber, file) {
+    const line = file.buffer.getLines()[lineNumber];
+    return line.length;
   }
 
   _mapExcerpt(problem, wasUnknown) {
