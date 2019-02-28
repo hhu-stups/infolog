@@ -22,9 +22,9 @@ export default {
     });
     this.infolog.onError((error) => {
       atom.confirm({
-        message: "Could not launch Infolog!",
+        message: "Could not run Infolog!",
         detail: `Please make sure the plugin is configured correctly.
-The error message was:
+
 ${error}`,
         type: "error",
         buttons: ["Go to Infolog settings", "Cancel"]
@@ -88,7 +88,6 @@ ${error}`,
   },
 
   analyzeFile() {
-    console.log("The setting is", atom.config.get("infolog.infologPath"));
     const currentEditor = atom.workspace.getActiveTextEditor();
     this.infologClient.onConnect(() => {
       const filePath = currentEditor.getPath();

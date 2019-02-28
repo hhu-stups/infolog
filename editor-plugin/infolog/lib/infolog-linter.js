@@ -17,10 +17,8 @@ export default class InfologLinter {
     newProblems.forEach((problem) => {
       problem.originFile = fileThatTriggeredAnalysis;
     });
-    console.log("Raw problems", newProblems);
     let existingProblemsWithoutNew = this._existingProblemsFiltered(newProblems);
     this.problems = this._assembleAllProblems(existingProblemsWithoutNew, newProblems, fileThatTriggeredAnalysis);
-    console.log("Final problems:", this.problems);
     this._displayProblems();
   }
 
@@ -44,7 +42,6 @@ export default class InfologLinter {
 
   _displayProblems() {
     this.linter.clearMessages();
-    console.log("As messages:", this._problemsToMessages());
     this.linter.setAllMessages(this._problemsToMessages());
   }
 

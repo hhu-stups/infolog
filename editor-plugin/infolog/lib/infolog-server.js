@@ -11,7 +11,6 @@ export default class InfologServer {
     sicstusExecutable = atom.config.get("infolog.sicstusExecutable"))
     {
       this.infologDirectory = infologDirectory;
-      this.serverDirectory = path.join(infologDirectory, "editor-plugin", "language-server");
       this.projectDirectory = projectDirectory || process.cwd();
       this.sicstusExecutable = sicstusExecutable;
       this.port = -1;
@@ -30,7 +29,7 @@ export default class InfologServer {
   {
     this.infolog = spawn(this.sicstusExecutable,
       ['-l',
-      path.join(this.serverDirectory, "infolog-server.pl"),
+      path.join(this.infologDirectory, "editor-plugin", "language-server", "infolog-server.pl"),
       "--goal",
       "'infolog-server':start_server,halt."],
       {
@@ -44,6 +43,12 @@ export default class InfologServer {
     });
     this.infolog.stderr.on("data", (data) => {
       console.log(`stderr: ${data}`);
+      const fileNotFoundRegex = /goal:(\s+)ensure_loaded\((.+):(.+)\)/.exec(data);
+      if (fileNotFoundRegex) {
+        this.callbacks["error"].forEach((callback) => {
+          callback(new Error(`Could not find file: ${fileNotFoundRegex[3]}`));
+        });
+      }
     });
     this.infolog.on("close", (code) => {
       console.log(`Process exited with code ${code}`);
