@@ -6,9 +6,9 @@ import * as path from 'path';
 export default class InfologServer {
 
   constructor(
-    infologDirectory = "C:\\Users\\Julian\\Documents\\Studium\\Semester\\9\ -\ WS1819\\Bachelorarbeit\\Infolog\\infolog",
+    infologDirectory = atom.config.get("infolog.infologPath"),
     projectDirectory = atom.project.getPaths()[0],
-    sicstusExecutable = "sicstus")
+    sicstusExecutable = atom.config.get("infolog.sicstusExecutable"))
     {
       this.infologDirectory = infologDirectory;
       this.serverDirectory = path.join(infologDirectory, "editor-plugin", "language-server");
@@ -16,7 +16,14 @@ export default class InfologServer {
       this.sicstusExecutable = sicstusExecutable;
       this.port = -1;
 
-      this.callbacks = { "start": [], "stop": [] };
+      this.callbacks = { "start": [], "stop": [], "error": [] };
+
+      atom.config.onDidChange("infolog.infologPath", (value) => {
+        this.infologDirectory = value.newValue;
+      });
+      atom.config.onDidChange("infolog.sicstusExecutable", (value) => {
+        this.sicstusExecutable = value.newValue;
+      });
     }
 
   startInfolog()
@@ -40,7 +47,13 @@ export default class InfologServer {
     });
     this.infolog.on("close", (code) => {
       console.log(`Process exited with code ${code}`);
-    })
+    });
+    this.infolog.on("error", (error) => {
+      this.callbacks["error"].forEach((callback) => {
+        callback(error);
+      });
+      this.killInfolog();
+    });
   }
 
   _startup(data)
@@ -79,6 +92,11 @@ export default class InfologServer {
   onStop(callback)
   {
     this.callbacks["stop"].push(callback);
+  }
+
+  onError(callback)
+  {
+    this.callbacks["error"].push(callback);
   }
 
 }
