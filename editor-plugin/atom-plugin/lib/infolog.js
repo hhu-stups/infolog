@@ -3,13 +3,10 @@
 import InfologServer from './infolog-server'
 import InfologClient from './infolog-client'
 import InfologLinter from './infolog-linter'
+import ProgressView from './progress-view'
 import { CompositeDisposable } from 'atom';
 
 export default {
-
-  infologView: null,
-  modalPanel: null,
-  subscriptions: null,
 
   activate(state) {
     this.infologClient = new InfologClient();
@@ -19,6 +16,12 @@ export default {
     });
     this.infolog.onStop(() => {
       this.infologClient.disconnect();
+    });
+
+    this.progressView = new ProgressView("Running Infolog...");
+    this.progressPanel = atom.workspace.addModalPanel({
+      item: this.progressView.getElement(),
+      visible: false
     });
 
     this.subscriptions = new CompositeDisposable();
@@ -33,6 +36,8 @@ export default {
   },
 
   deactivate() {
+    this.progressPanel.destroy();
+    this.progressView.destroy();
     this.infolog.killInfolog();
     this.infolog.destroy();
     this.infologClient.destroy();
@@ -51,12 +56,14 @@ export default {
   },
 
   analyzeFile() {
+    this.progressPanel.show();
     const currentEditor = atom.workspace.getActiveTextEditor();
     this.infologClient.onConnect(() => {
       const filePath = currentEditor.getPath();
       this.infologClient.onResponse((response, originFile) => {
         this.linter.updateProblems(response.result.problems, originFile);
         this.infolog.stopInfolog();
+        this.progressPanel.hide();
       });
       this.infologClient.methodCall("analyzeFile", {
         "path": filePath
