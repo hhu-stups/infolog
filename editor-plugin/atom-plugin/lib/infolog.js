@@ -51,8 +51,9 @@ export default {
   },
 
   analyzeFile() {
+    const currentEditor = atom.workspace.getActiveTextEditor();
     this.infologClient.onConnect(() => {
-      const filePath = atom.workspace.getActiveTextEditor().getPath();
+      const filePath = currentEditor.getPath();
       this.infologClient.onResponse((response, originFile) => {
         this.linter.updateProblems(response.result.problems, originFile);
         this.infolog.stopInfolog();

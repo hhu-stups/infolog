@@ -14,6 +14,9 @@ export default class InfologLinter {
   }
 
   updateProblems(newProblems, fileThatTriggeredAnalysis) {
+    newProblems.forEach((problem) => {
+      problem.originFile = fileThatTriggeredAnalysis;
+    });
     console.log("Raw problems", newProblems);
     let existingProblemsWithoutNew = this._existingProblemsFiltered(newProblems);
     this.problems = this._assembleAllProblems(existingProblemsWithoutNew, newProblems, fileThatTriggeredAnalysis);
@@ -29,15 +32,13 @@ export default class InfologLinter {
   _existingProblemsFiltered(problems) {
     return this.problems.filter((existingProblem) => {
       return !(problems.some((problem) => {
-        return existingProblem.File == problem.File;
+        return ((problem.File != "unknown" && existingProblem.File == problem.File)
+          || problem.File == "unknown" && existingProblem.originFile == problem.originFile);
       }));
     });
   }
 
   _assembleAllProblems(existingProblemsWithoutNew, problems, fileThatTriggeredAnalysis) {
-    problems.forEach((problem) => {
-      problem.originFile = fileThatTriggeredAnalysis;
-    });
     return existingProblemsWithoutNew.concat(problems);
   }
 
