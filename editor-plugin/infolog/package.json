@@ -13,7 +13,7 @@
     "atom": ">=1.0.0 <2.0.0"
   },
   "dependencies": {
-    "linter": "2.3.0"
+    "linter-ui-default": ""
   },
   "consumedServices": {
     "linter-indie": {
