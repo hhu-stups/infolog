@@ -19,7 +19,6 @@ export default class InfologClient {
 
   connect(port)
   {
-    console.log("Client connecting to port", port);
     this.client = net.createConnection({ port: port}, () => {
       this.port = port;
       this.callbacks["connect"].forEach((callback) => {
@@ -27,7 +26,6 @@ export default class InfologClient {
       });
     });
     this.client.on("data", (data) => {
-      console.log(`client: ${data}`);
       this.callbacks["response"].forEach((callback) => {
         const parsedData = JSON.parse(data);
         callback(parsedData, this.originFiles[parsedData.id]);
@@ -37,7 +35,6 @@ export default class InfologClient {
 
   disconnect()
   {
-    console.log("Client disconnecting from port", this.port);
     this.callbacks["disconnect"].forEach((callback) => {
       callback();
     });

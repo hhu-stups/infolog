@@ -36,22 +36,17 @@ export default class InfologServer {
         cwd: this.projectDirectory
       });
     this.infolog.stdout.on("data", (data) => {
-      console.log(`stdout: ${data}`);
       if (this.port == -1) {
         this._startup(data);
       }
     });
     this.infolog.stderr.on("data", (data) => {
-      console.log(`stderr: ${data}`);
       const fileNotFoundRegex = /goal:(\s+)ensure_loaded\((.+):(.+)\)/.exec(data);
       if (fileNotFoundRegex) {
         this.callbacks["error"].forEach((callback) => {
           callback(new Error(`Could not find file: ${fileNotFoundRegex[3]}`));
         });
       }
-    });
-    this.infolog.on("close", (code) => {
-      console.log(`Process exited with code ${code}`);
     });
     this.infolog.on("error", (error) => {
       this.callbacks["error"].forEach((callback) => {
