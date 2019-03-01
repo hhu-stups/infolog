@@ -61,7 +61,7 @@ export default class InfologLinter {
   }
 
   _mapFile(problem) {
-    let fileName = problem.File;
+    let fileName = problem.File.toLowerCase();
     if (os.type() == "Windows_NT") {
       fileName = fileName.replace(/\//g, "\\");
     }
