@@ -29,7 +29,7 @@ export default class InfologServer {
   {
     this.infolog = spawn(this.sicstusExecutable,
       ['-l',
-      path.join(this.infologDirectory, "editor-plugin", "language-server", "infolog-server.pl"),
+      path.join(this.infologDirectory, "editor-plugin", "analysis-server", "infolog-server.pl"),
       "--goal",
       "'infolog-server':start_server,halt."],
       {
