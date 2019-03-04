@@ -19,7 +19,12 @@ export default class InfologLinter {
     });
     let existingProblemsWithoutNew = this._existingProblemsFiltered(newProblems);
     this.problems = this._assembleAllProblems(existingProblemsWithoutNew, newProblems, fileThatTriggeredAnalysis);
-    this._displayProblems();
+    this.redisplayProblems();
+  }
+
+  redisplayProblems() {
+    this.linter.clearMessages();
+    this.linter.setAllMessages(this._problemsToMessages());
   }
 
   clearProblems() {
@@ -38,11 +43,6 @@ export default class InfologLinter {
 
   _assembleAllProblems(existingProblemsWithoutNew, problems, fileThatTriggeredAnalysis) {
     return existingProblemsWithoutNew.concat(problems);
-  }
-
-  _displayProblems() {
-    this.linter.clearMessages();
-    this.linter.setAllMessages(this._problemsToMessages());
   }
 
   _problemsToMessages() {
@@ -66,11 +66,16 @@ export default class InfologLinter {
       fileName = fileName.replace(/\//g, "\\");
     }
 
-    const openedFilesLowerCased = atom.workspace.getTextEditors().map((editor) => {
-      return {
-        lowerPath: editor.getPath().toLowerCase(),
-        path: editor.getPath()
-    };});
+    const openedFilesLowerCased = atom.workspace.getTextEditors()
+      .filter((editor) => {
+        return editor.getPath();
+      })
+      .map((editor) => {
+        return {
+          lowerPath: editor.getPath().toLowerCase(),
+          path: editor.getPath()
+        };
+      });
 
     fileName = openedFilesLowerCased.find((file) => {
       return file.lowerPath == fileName;

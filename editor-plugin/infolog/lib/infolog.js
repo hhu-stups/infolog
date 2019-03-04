@@ -50,6 +50,13 @@ ${error}`,
       atom.commands.add('atom-workspace', {
         'infolog:clearProblems': () => this.clearProblems()})
     );
+
+    // setup open file trigger
+    this.subscriptions.add(atom.workspace.observeTextEditors((args) => {
+      if (this.linter) {
+        this.linter.redisplayProblems();
+      }
+    }));
   },
 
   deactivate() {
