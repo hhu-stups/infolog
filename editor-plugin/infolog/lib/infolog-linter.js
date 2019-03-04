@@ -47,14 +47,14 @@ export default class InfologLinter {
 
   _problemsToMessages() {
     return this.problems.map((problem) => {
-      const [fileName, wasUnknown] = this._mapFile(problem);
+      const [fileName, isUnmapped] = this._mapFile(problem);
       return {
         severity: ["error", "warning"].includes(problem.Type) ? problem.Type : "info",
         location: {
           file: fileName,
-          position: this._mapPosition(problem.L1, problem.L2, fileName, wasUnknown)
+          position: this._mapPosition(problem.L1, problem.L2, fileName, isUnmapped)
         },
-        excerpt: this._mapExcerpt(problem, wasUnknown),
+        excerpt: this._mapExcerpt(problem),
         description: this._generateDescription(problem)
       }
     })
@@ -80,20 +80,23 @@ export default class InfologLinter {
     fileName = openedFilesLowerCased.find((file) => {
       return file.lowerPath == fileName;
     });
-    if (fileName) {
+    if (problem.File == "unknown") {
+      return [problem.originFile, true];
+    }
+    else if (fileName) {
       return [fileName.path, false];
     } else {
-      return [problem.originFile, true];
+      return [problem.File, true];
     }
 
   }
 
-  _mapPosition(L1, L2, fileName, wasUnknown) {
+  _mapPosition(L1, L2, fileName, isUnmapped) {
     let line1 = L1 - 1, line2 = L2 - 1;
     const problemFile = atom.workspace.getTextEditors().find((editor) => {
       return editor.getPath() == fileName;
     });
-    if (L1 == "unknown" || L2 == "unknown" || wasUnknown) {
+    if (L1 == "unknown" || L2 == "unknown" || isUnmapped) {
       line1 = 0;
       line2 = 0;
     }
@@ -118,8 +121,8 @@ export default class InfologLinter {
     return line.length;
   }
 
-  _mapExcerpt(problem, wasUnknown) {
-    if (wasUnknown) {
+  _mapExcerpt(problem) {
+    if (problem.File == "unknown") {
       if (problem.L1 == "unknown" || problem.L2 == "unknown") {
         return `${problem.Category} (from unknown file, lines unknown)`
       } else {
