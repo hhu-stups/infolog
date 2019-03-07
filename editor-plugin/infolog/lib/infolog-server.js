@@ -31,7 +31,7 @@ export default class InfologServer {
       ['-l',
       path.join(this.infologDirectory, "editor-plugin", "analysis-server", "infolog-server.pl"),
       "--goal",
-      "'infolog-server':start_server,halt."],
+      "start_server,halt."],
       {
         cwd: this.projectDirectory
       });

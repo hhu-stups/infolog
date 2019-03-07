@@ -1,11 +1,11 @@
-:- module('infolog-server', [start_server/1]).
+:- module('infolog-server', [start_server/0]).
 
 :- use_module(library(sockets)).
 :- use_module(library(lists)).
 :- use_module(json).
 :- use_module('infolog-handlers').
 
-% Connection handling
+% Socket connection handling
 start_server :-
     format("Starting Infolog server~n", []),
     socket_server_open(inet('',Port), Socket, [loopback(true)]),
@@ -17,8 +17,8 @@ start_server :-
 
 handle_connection(Stream) :-
     peek_byte(Stream, B), B \= -1,
-    read_single_message(Stream, Message),
-    handle_message(Message, Response),
+    read_single_message(Stream, Content),
+    demultiplex_message(Content, Response),
     send_response(Stream, Response),
     flush_output(user_output),
     flush_output(Stream),
@@ -28,12 +28,9 @@ handle_connection(Stream) :-
     format("Connection closed.~n", []),
     flush_output(user_output).
 
-% Message parsing
-read_single_message(Stream, Message) :-
+read_single_message(Stream, Content) :-
     read_header(Stream, Header, []),
-    read_content(Stream, Header, Content),
-    format("Received: ~s~n", [Content]),
-    parse_json(Content, Message).
+    read_content(Stream, Header, Content).
 
 %% Header
 read_header(Stream, Header, PreviousCodes) :-
@@ -56,17 +53,27 @@ read_content(Stream, Header, Content) :-
     content_length(Header, ContentLength),
     read_n_bytes(Stream, ContentLength, Content, []).
 
+%% Stream transmission
 read_n_bytes(_, 0, Out, Acc) :- reverse(Acc, Out).
 read_n_bytes(Stream, N, Out, Acc) :-
     get_byte(Stream, B),
     Nn is N - 1,
     read_n_bytes(Stream, Nn, Out, [B|Acc]).
 
-% Message handling
-handle_message(Message, Response) :-
+send_response(Stream, Response) :- write_bytes(Stream, Response).
+
+write_bytes(_, []).
+write_bytes(Stream, [Byte|Bytes]) :-
+    put_byte(Stream, Byte),
+    write_bytes(Stream, Bytes).
+
+% Message demultiplexing
+demultiplex_message(Content, ResponseText) :-
+    parse_json(Content, Message),
     jsonrpc_message(Message, Method, ID, Params),
     message_handler(Method, Params, ID, Result, Error),
-    jsonrpc_response(Result, Error, ID, Response).
+    jsonrpc_response(Result, Error, ID, Response),
+    parse_json(ResponseText, Response).
 
 jsonrpc_message(Message, Method, ID, Params) :-
     json_object_get(Message, 'method', Method),
@@ -83,12 +90,3 @@ jsonrpc_response(Result, null, ID, Response) :-
         ['jsonrpc'-'2.0',
          'id'-ID,
          'result'-Result], Response).
-
-send_response(Stream, Response) :-
-    parse_json(ResponseStr, Response),
-    write_bytes(Stream, ResponseStr).
-
-write_bytes(_, []).
-write_bytes(Stream, [Byte|Bytes]) :-
-    put_byte(Stream, Byte),
-    write_bytes(Stream, Bytes).
