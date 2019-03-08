@@ -15,7 +15,7 @@ export default class InfologServer {
       this.sicstusExecutable = sicstusExecutable;
       this.port = -1;
 
-      this.callbacks = { "start": [], "stop": [], "error": [] };
+      this.triggers = { "start": [], "stop": [], "error": [] };
 
       atom.config.onDidChange("infolog.infologPath", (value) => {
         this.infologDirectory = value.newValue;
@@ -43,13 +43,13 @@ export default class InfologServer {
     this.infolog.stderr.on("data", (data) => {
       const fileNotFoundRegex = /goal:(\s+)ensure_loaded\((.+):(.+)\)/.exec(data);
       if (fileNotFoundRegex) {
-        this.callbacks["error"].forEach((callback) => {
+        this.triggers["error"].forEach((callback) => {
           callback(new Error(`Could not find file: ${fileNotFoundRegex[3]}`));
         });
       }
     });
     this.infolog.on("error", (error) => {
-      this.callbacks["error"].forEach((callback) => {
+      this.triggers["error"].forEach((callback) => {
         callback(error);
       });
       this.killInfolog();
@@ -61,7 +61,7 @@ export default class InfologServer {
     const portRegex = /Listening on port (\w+)/.exec(data);
     if (portRegex) {
       this.port = portRegex[1];
-      this.callbacks["start"].forEach((callback) => {
+      this.triggers["start"].forEach((callback) => {
         callback(this.port);
       });
     }
@@ -71,7 +71,7 @@ export default class InfologServer {
   {
     if (this.port != -1)
     {
-      this.callbacks["stop"].forEach((callback) => {
+      this.triggers["stop"].forEach((callback) => {
         callback();
       });
     }
@@ -86,17 +86,17 @@ export default class InfologServer {
 
   onStart(callback)
   {
-    this.callbacks["start"].push(callback);
+    this.triggers["start"].push(callback);
   }
 
   onStop(callback)
   {
-    this.callbacks["stop"].push(callback);
+    this.triggers["stop"].push(callback);
   }
 
   onError(callback)
   {
-    this.callbacks["error"].push(callback);
+    this.triggers["error"].push(callback);
   }
 
 }

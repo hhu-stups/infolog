@@ -13,7 +13,7 @@ export default class InfologClient {
   {
     this.port = -1;
     this.messageIDs = 1;
-    this.callbacks = { "connect": [], "disconnect": [], "response": [] };
+    this.triggers = { "connect": [], "disconnect": [], "response": [] };
     this.originFiles = [undefined];
   }
 
@@ -21,12 +21,12 @@ export default class InfologClient {
   {
     this.client = net.createConnection({ port: port}, () => {
       this.port = port;
-      this.callbacks["connect"].forEach((callback) => {
+      this.triggers["connect"].forEach((callback) => {
         callback();
       });
     });
     this.client.on("data", (data) => {
-      this.callbacks["response"].forEach((callback) => {
+      this.triggers["response"].forEach((callback) => {
         const parsedData = JSON.parse(data);
         callback(parsedData, this.originFiles[parsedData.id]);
       });
@@ -35,7 +35,7 @@ export default class InfologClient {
 
   disconnect()
   {
-    this.callbacks["disconnect"].forEach((callback) => {
+    this.triggers["disconnect"].forEach((callback) => {
       callback();
     });
     this.reset();
@@ -54,17 +54,17 @@ export default class InfologClient {
 
   onConnect(callback)
   {
-    this.callbacks["connect"].push(callback);
+    this.triggers["connect"].push(callback);
   }
 
   onDisconnect(callback)
   {
-    this.callbacks["disconnect"].push(callback);
+    this.triggers["disconnect"].push(callback);
   }
 
   onResponse(callback)
   {
-    this.callbacks["response"].push(callback);
+    this.triggers["response"].push(callback);
   }
 
   _jsonRpcMessage(method, params) {
