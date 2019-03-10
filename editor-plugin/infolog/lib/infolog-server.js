@@ -2,6 +2,7 @@
 
 import { spawn } from 'child_process';
 import * as path from 'path';
+import * as os from 'os'
 
 export default class InfologServer {
 
@@ -27,11 +28,15 @@ export default class InfologServer {
 
   startInfolog()
   {
+    let infologDir = this.infologDirectory;
+    if (os.type() == "Windows_NT") {
+      infologDir = infologDir.replace(/\\/g, "/");
+    }
     this.infolog = spawn(this.sicstusExecutable,
       ['-l',
       path.join(this.infologDirectory, "editor-plugin", "analysis-server", "infolog-server.pl"),
       "--goal",
-      "start_server,halt."],
+      `start_server('${infologDir}'),halt.`],
       {
         cwd: this.projectDirectory
       });

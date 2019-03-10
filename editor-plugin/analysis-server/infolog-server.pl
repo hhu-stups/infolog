@@ -1,4 +1,4 @@
-:- module('infolog-server', [start_server/0]).
+:- module('infolog-server', [start_server/1]).
 
 :- use_module(library(sockets)).
 :- use_module(library(lists)).
@@ -6,19 +6,19 @@
 :- use_module('infolog-handlers').
 
 % Socket connection handling
-start_server :-
+start_server(InfologPath) :-
     format("Starting Infolog server~n", []),
     socket_server_open(inet('',Port), Socket, [loopback(true)]),
     format("Listening on port ~s~n", [Port]),
     flush_output(user_output),
     socket_server_accept(Socket, _, Stream, [type(binary)]),
-    handle_connection(Stream),
+    handle_connection(Stream, InfologPath),
     socket_server_close(Socket).
 
-handle_connection(Stream) :-
+handle_connection(Stream, InfologPath) :-
     peek_byte(Stream, B), B \= -1,
     read_single_message(Stream, Content),
-    demultiplex_message(Content, Response),
+    demultiplex_message(Content, Response, InfologPath),
     send_response(Stream, Response),
     flush_output(user_output),
     flush_output(Stream),
@@ -68,10 +68,10 @@ write_bytes(Stream, [Byte|Bytes]) :-
     write_bytes(Stream, Bytes).
 
 % Message demultiplexing
-demultiplex_message(Content, ResponseText) :-
+demultiplex_message(Content, ResponseText, InfologPath) :-
     parse_json(Content, Message),
     jsonrpc_message(Message, Method, ID, Params),
-    message_handler(Method, Params, ID, Result, Error),
+    message_handler(Method, Params, ID, Result, Error, InfologPath),
     jsonrpc_response(Result, Error, ID, Response),
     parse_json(ResponseText, Response).
 
