@@ -81,7 +81,9 @@ export default class InfologServer {
   killInfolog()
   {
     this.stopInfolog();
-    this.infolog.kill();
+    if (this.infolog) {
+      this.infolog.kill();
+    }
   }
 
   onStart(callback)

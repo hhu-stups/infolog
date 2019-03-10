@@ -39,7 +39,9 @@ export default class InfologClient {
       callback();
     });
     this.reset();
-    this.client.destroy();
+    if (this.client) {
+      this.client.destroy();
+    }
   }
 
   methodCall(method, params, originFile) {

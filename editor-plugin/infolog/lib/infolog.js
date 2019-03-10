@@ -48,6 +48,8 @@ ${error}`,
       atom.commands.add('atom-workspace', {
         'infolog:analyzeFile': () => this.analyzeFile()}),
       atom.commands.add('atom-workspace', {
+        'infolog:cancelAnalysis': () => this.cancelAnalysis()}),
+      atom.commands.add('atom-workspace', {
         'infolog:clearProblems': () => this.clearProblems()}),
       atom.commands.add('atom-workspace', {
         'infolog:toggleShowAllFiles': () => this.toggleShowAllFiles()}),
@@ -99,6 +101,18 @@ ${error}`,
   },
 
   analyzeFile() {
+    if (this.progressPanel.isVisible()) {
+      atom.confirm({
+        message: "Infolog already running!",
+        detail: "There is already an analysis in progress",
+        type: "error",
+        buttons: ["Abort running analysis", "Cancel"]
+      }, (response) => {
+        if (response == 0) {
+          this.cancelAnalysis();
+        }
+      });
+    }
     const currentEditor = atom.workspace.getActiveTextEditor();
     this.infologClient.onConnect(() => {
       const filePath = currentEditor.getPath();
@@ -111,6 +125,10 @@ ${error}`,
       }, filePath);
     });
     this.infolog.startInfolog();
+  },
+
+  cancelAnalysis() {
+    this.infolog.killInfolog();
   },
 
   clearProblems() {
