@@ -14,8 +14,22 @@
               "command": "infolog:analyzeFile"
             },
             {
+              "type": "separator"
+            },
+            {
+              "label": "Toggle 'Show all files'",
+              "command": "infolog:toggleShowAllFiles"
+            },
+            {
               "label": "Clear problems",
               "command": "infolog:clearProblems"
+            },
+            {
+              "type": "separator"
+            },
+            {
+              "label": "Settings",
+              "command": "infolog:showSettings"
             }
           ]
         }

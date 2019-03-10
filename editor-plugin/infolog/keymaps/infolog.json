@@ -1,4 +1,7 @@
 {
   "atom-workspace": {
+    "ctrl-alt-l": "infolog:analyzeFile",
+    "ctrl-alt-t": "infolog:toggleShowAllFiles",
+    "ctrl-alt-c": "infolog:clearProblems"
   }
 }

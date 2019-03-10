@@ -42,11 +42,11 @@ export default class InfologClient {
     this.client.destroy();
   }
 
-  methodCall(method, params) {
+  methodCall(method, params, originFile) {
     if (this.port == -1) {
       throw "Cannot call method: Client not connected!"
     }
-    this.originFiles.push(params.path);
+    this.originFiles.push(originFile);
     const message = this._jsonRpcMessage(method, params);
     this.client.write(this._withHeader(JSON.stringify(message)));
     return message.id;

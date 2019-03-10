@@ -30,7 +30,7 @@ ${error}`,
         buttons: ["Go to Infolog settings", "Cancel"]
       }, (response) => {
         if (response == 0) {
-          atom.workspace.open("atom://config/packages/infolog");
+          this.showSettings();
         }
       })
     })
@@ -48,7 +48,11 @@ ${error}`,
       atom.commands.add('atom-workspace', {
         'infolog:analyzeFile': () => this.analyzeFile()}),
       atom.commands.add('atom-workspace', {
-        'infolog:clearProblems': () => this.clearProblems()})
+        'infolog:clearProblems': () => this.clearProblems()}),
+      atom.commands.add('atom-workspace', {
+        'infolog:toggleShowAllFiles': () => this.toggleShowAllFiles()}),
+      atom.commands.add('atom-workspace', {
+        'infolog:showSettings': () => this.showSettings()})
     );
 
     // setup open file trigger
@@ -104,12 +108,25 @@ ${error}`,
       });
       this.infologClient.methodCall("analyzeFile", {
         "path": filePath
-      });
+      }, filePath);
     });
     this.infolog.startInfolog();
   },
 
   clearProblems() {
     this.linter.clearProblems();
+  },
+
+  toggleShowAllFiles() {
+    const previousSetting = atom.config.get("linter-ui-default.panelRepresents");
+    if (previousSetting == "Entire Project") {
+      atom.config.set("linter-ui-default.panelRepresents", "Current File");
+    } else {
+      atom.config.set("linter-ui-default.panelRepresents", "Entire Project");
+    }
+  },
+
+  showSettings() {
+    atom.workspace.open("atom://config/packages/infolog");
   }
 };
