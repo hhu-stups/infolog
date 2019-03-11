@@ -6,6 +6,7 @@ import InfologLinter from './infolog-linter'
 import ProgressView from './progress-view'
 import { CompositeDisposable } from 'atom';
 import * as path from 'path';
+import * as os from 'os';
 
 export default {
 
@@ -47,6 +48,8 @@ ${error}`,
     this.subscriptions.add(
       atom.commands.add('atom-workspace', {
         'infolog:analyzeFile': () => this.analyzeFile()}),
+      atom.commands.add('atom-workspace', {
+        'infolog:analyzeFileProB': () => this.analyzeFileProB()}),
       atom.commands.add('atom-workspace', {
         'infolog:cancelAnalysis': () => this.cancelAnalysis()}),
       atom.commands.add('atom-workspace', {
@@ -91,7 +94,25 @@ ${error}`,
       description: "Path to the directory of the Infolog repository",
       type: "string",
       default: path.normalize(path.join(__dirname, "..", "..", ".."))
-    }
+    },
+    proBPath: {
+      title: "ProB path",
+      description: "Path to ProB directory",
+      type: "string",
+      default: "TODO"
+    },
+    proBInfoDir: {
+      title: "ProB info directory",
+      description: "Path to ProB info directory",
+      type: "string",
+      default: "TODO"
+    },
+    proBTargets: {
+      title: "ProB targets",
+      description: "ProB targets",
+      type: "string",
+      default: "TODO"
+    },
   },
 
   consumeIndie(registerIndie) {
@@ -101,6 +122,33 @@ ${error}`,
   },
 
   analyzeFile() {
+    this._startAnalysis((filePath) => {
+      this.infologClient.methodCall("analyzeFile", {
+        "path": filePath
+      }, filePath);
+    });
+  },
+
+  analyzeFileProB() {
+    let proBPath = atom.config.get("infolog.proBPath");
+    let proBInfoDir = atom.config.get("infolog.proBInfoDir");
+    let proBTargets = atom.config.get("infolog.proBTargets");
+    if (os.type() == "Windows_NT") {
+      proBPath = proBPath.replace(/\\/g, "/");
+      proBInfoDir = proBInfoDir.replace(/\\/g, "/");
+      proBTargets = proBTargets.replace(/\\/g, "/");
+    }
+    this._startAnalysis((filePath) => {
+      this.infologClient.methodCall("analyzeFileProB", {
+        "path": filePath,
+        "proBPath": proBPath,
+        "proBInfoDir": proBInfoDir,
+        "proBTargets": proBTargets
+      }, filePath);
+    });
+  },
+
+  _startAnalysis(method) {
     if (this.progressPanel.isVisible()) {
       atom.confirm({
         message: "Infolog already running!",
@@ -120,9 +168,7 @@ ${error}`,
         this.linter.updateProblems(response.result.problems, originFile);
         this.infolog.stopInfolog();
       });
-      this.infologClient.methodCall("analyzeFile", {
-        "path": filePath
-      }, filePath);
+      method(filePath);
     });
     this.infolog.startInfolog();
   },

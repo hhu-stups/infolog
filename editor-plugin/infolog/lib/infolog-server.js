@@ -2,7 +2,7 @@
 
 import { spawn } from 'child_process';
 import * as path from 'path';
-import * as os from 'os'
+import * as os from 'os';
 
 export default class InfologServer {
 
@@ -41,11 +41,13 @@ export default class InfologServer {
         cwd: this.projectDirectory
       });
     this.infolog.stdout.on("data", (data) => {
+      console.log(`${data}`);
       if (this.port == -1) {
         this._startup(data);
       }
     });
     this.infolog.stderr.on("data", (data) => {
+      console.log(`${data}`);
       const fileNotFoundRegex = /goal:(\s+)ensure_loaded\((.+):(.+)\)/.exec(data);
       if (fileNotFoundRegex) {
         this.triggers["error"].forEach((callback) => {

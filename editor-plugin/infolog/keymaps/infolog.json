@@ -1,6 +1,7 @@
 {
   "atom-workspace": {
     "ctrl-alt-a": "infolog:analyzeFile",
+    "ctrl-alt-b": "infolog:analyzeFileProB",
     "ctrl-alt-c": "infolog:cancelAnalysis",
     "ctrl-alt-t": "infolog:toggleShowAllFiles",
     "ctrl-alt-r": "infolog:clearProblems"
