@@ -13,7 +13,7 @@ stages:
 
 variables:
   DEPLOYMENT_IMAGE_VERSION: "0.2"
-  SICSTUS_VERSION: "4.4.1"
+  SICSTUS_VERSION: "4.5.0"
   DEBIAN_FRONTEND: noninteractive
 
 build:
