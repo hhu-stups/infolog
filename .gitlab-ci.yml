@@ -46,8 +46,6 @@ infolog:
     - git clone --depth=1 git://github.com/bendisposto/prob2.git ${PROB2_PATH}
   script:
     - make clean ui indy.edn infolog.edn docs
-  except:
-    - pushes
   artifacts:
     expire_in: 1 hour
     paths:
@@ -67,5 +65,3 @@ deploy:
   environment:
     name: doc/infolog
     url: https://www3.hhu.de/stups/infolog/
-  except:
-    - pushes
