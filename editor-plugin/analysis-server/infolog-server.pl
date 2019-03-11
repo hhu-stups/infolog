@@ -2,7 +2,7 @@
 
 :- use_module(library(sockets)).
 :- use_module(library(lists)).
-:- use_module(json).
+:- use_module(json_lib).
 :- use_module('infolog-handlers').
 
 % Socket connection handling

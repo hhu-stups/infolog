@@ -1,4 +1,4 @@
-:- module(json, [parse_json/2,
+:- module(json_lib, [parse_json/2,
                  json_object_create/2, json_object_get/3, json_object_put/4,
                  json_number/3]).
 
