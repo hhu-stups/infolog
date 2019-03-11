@@ -1873,6 +1873,7 @@ find_meta_pred(META,MODULE,MetaList,_) :-
 :- dynamic meta_user_pred/3, meta_user_pred_cache_needs_updating/0.
 %:- include(meta_user_pred_cache). % cached version from previous run;  TO DO provide parameter
 % write meta_user_pred facts
+write_meta_user_pred_cache('') :- !,  format('Cannot write meta_prediate Cache file~n',[]).
 write_meta_user_pred_cache(F) :- format('Writing meta_prediate Cache file: ~w~n',[F]),
      open(F,write,S), call_cleanup(gen_user(S),close(S)).
 gen_user(S) :-
