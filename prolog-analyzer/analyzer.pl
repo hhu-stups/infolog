@@ -1,4 +1,4 @@
-% (c) 2013-2018 Lehrstuhl fuer Softwaretechnik und Programmiersprachen,
+% (c) 2013-2019 Lehrstuhl fuer Softwaretechnik und Programmiersprachen,
 % Heinrich Heine Universitaet Duesseldorf
 % This file expands clause terms, runs some analysis on them,
 % and writes the results to CSV or EDN files.
@@ -1498,12 +1498,11 @@ analyze_clj(InputFile,OutputFile) :-
 % @param InputFiles a list of files to analyze
 % @param CacheFile path to the meta-predicate cache
 analyze(InputFiles,CacheFile,TclCallFile) :-
-    format('~nINFOLOG: Loading meta_predicate cache file ~w~n',[CacheFile]),
-    my_ensure_loaded(CacheFile),
-    my_ensure_loaded(TclCallFile),
+    load_cache_file(CacheFile),
+    load_call_file(TclCallFile),
     catch(ensure_loaded('documentation.pl'),_,
        catch(ensure_loaded('prolog-analyzer/documentation.pl'),_,
-         print('Documentation coverage data could not be loaded.'))),
+         format('Documentation coverage data could not be loaded.~n',[]))),
     analyse_files(InputFiles),
     (meta_user_pred_cache_needs_updating -> write_meta_user_pred_cache(CacheFile)
      ; format('INFOLOG: meta_predicate cache up-to-date.~n',[])).
@@ -1513,9 +1512,17 @@ analyze(InputFiles,CacheFile,TclCallFile) :-
 % @param InputFiles a list of files to analyze
 analyze(InputFiles) :- analyze(InputFiles,'','').
 
-my_ensure_loaded('') :- !.
-my_ensure_loaded(File) :-
- catch(ensure_loaded(File),_,format(user_error,'### File ~w could not be loaded.~n',[File])).
+load_cache_file('') :- !,
+   format('~nINFOLOG: No meta_predicate cache file provided; analysis will be imprecise.~n',[]).
+load_cache_file(File) :-
+   format('~nINFOLOG: Loading meta_predicate cache file ~w~n',[File]),
+   catch(ensure_loaded(File),_,format(user_error,'### File ~w could not be loaded.~n',[File])).
+
+load_call_file('') :- !,
+   format('~nINFOLOG: No external call file provided; dead code analysis will be imprecise.~n',[]).
+load_call_file(File) :-
+  format('~nINFOLOG: Loading external (Tcl/...) call file ~w~n',[File]),
+   catch(ensure_loaded(File),_,format(user_error,'### File ~w could not be loaded.~n',[File])).
 
 
 
@@ -1525,6 +1532,7 @@ my_ensure_loaded(File) :-
 % @caution it's analyse_files, not analyze_files. #typodanger
 % @param InputFiles a list of files to analyze
 analyse_files(InputFiles) :-
+    format('~nINFOLOG: Starting analysis for: ~w~n',[InputFiles]),
     start_analysis_timer(T0),
     print('INFOLOG: precompiling library_modules'),nl,
     precompile_library_modules,
