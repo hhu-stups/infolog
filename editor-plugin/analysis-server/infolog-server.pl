@@ -22,6 +22,7 @@ handle_connection(Stream, InfologPath) :-
     send_response(Stream, Response),
     flush_output(user_output),
     flush_output(Stream),
+    !,
     handle_connection(Stream).
 handle_connection(Stream) :-
     peek_byte(Stream, B), B = -1,

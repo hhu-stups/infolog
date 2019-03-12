@@ -15,7 +15,6 @@ handle_analyzeFile(Params, _, Result, null, InfologPath) :-
     atom_concat(InfologPath, '/prolog-analyzer/analyzer', AnalyzerPath),
     use_module(AnalyzerPath),
     json_lib:json_object_get(Params, 'path', Path),
-    flush_output(user_output),
     analyze(Path),
     findall(
         ['Category'-CatStr,
@@ -63,4 +62,4 @@ handle_analyzeFileProB(Params, _, Result, null, InfologPath) :-
 
 server_code(Element) :- json_lib:json_object_get(Element, 'Module', 'infolog-server').
 server_code(Element) :- json_lib:json_object_get(Element, 'Module', 'infolog-handlers').
-server_code(Element) :- json_lib:json_object_get(Element, 'Module', 'json').
+server_code(Element) :- json_lib:json_object_get(Element, 'Module', 'json_lib').
