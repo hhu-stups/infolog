@@ -135,7 +135,6 @@ export default class InfologLinter {
 
   _generateDescription(problem) {
     return `${problem.Message}\n
-      in predicate ${problem.Module}:${problem.Predicate}\n
-      Hash: ${problem.Hash}`;
+      in predicate ${problem.Module}:${problem.Predicate}`;
   }
 }

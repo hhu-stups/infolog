@@ -15,6 +15,7 @@ export default class InfologClient {
     this.messageIDs = 1;
     this.triggers = { "connect": [], "disconnect": [], "response": [] };
     this.originFiles = [undefined];
+    this.responseBuffer = [];
   }
 
   connect(port)
@@ -27,8 +28,14 @@ export default class InfologClient {
     });
     this.client.on("data", (data) => {
       this.triggers["response"].forEach((callback) => {
-        const parsedData = JSON.parse(data);
-        callback(parsedData, this.originFiles[parsedData.id]);
+        this.responseBuffer.push(data);
+        const message = Buffer.concat(this.responseBuffer);
+        try {
+          const parsedData = JSON.parse(message);
+          callback(parsedData, this.originFiles[parsedData.id]);
+        } finally {
+          // ignore incomplete message
+        }
       });
     });
   }
