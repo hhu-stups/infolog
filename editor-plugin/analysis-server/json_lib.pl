@@ -125,15 +125,17 @@ json_to_codes(J, S) :-
     is_list(J),
     J = [First|Rest],
     json_to_codes(First, FirstCodes),
-    scanlist(scan_values_to_codes, Rest, FirstCodes, ValCodes),
-    append(["[", ValCodes, "]"], S).
+    append(FirstCodes, Tail, Codes),
+    scanlist(scan_values_to_codes, Rest, Tail, []),
+    append(["[", Codes, "]"], S).
 json_to_codes(J, S) :-
     J = [],
     S = "[]".
 
-scan_values_to_codes(Value, Prev, Codes) :-
+scan_values_to_codes(Value, Prev, Next) :-
     json_to_codes(Value, ValueCodes),
-    append([Prev, ",", ValueCodes], Codes).
+    append(",", ValueCodes, Codes),
+    append(Codes, Next, Prev).
 
 %% Numbers
 json_to_codes(J, S) :-
