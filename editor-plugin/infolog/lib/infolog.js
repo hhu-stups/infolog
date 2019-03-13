@@ -49,8 +49,6 @@ ${error}`,
       atom.commands.add('atom-workspace', {
         'infolog:analyzeFile': () => this.analyzeFile()}),
       atom.commands.add('atom-workspace', {
-        'infolog:analyzeFileProB': () => this.analyzeFileProB()}),
-      atom.commands.add('atom-workspace', {
         'infolog:cancelAnalysis': () => this.cancelAnalysis()}),
       atom.commands.add('atom-workspace', {
         'infolog:clearProblems': () => this.clearProblems()}),
@@ -94,7 +92,7 @@ ${error}`,
       description: "Path to the directory of the Infolog repository",
       type: "string",
       default: path.normalize(path.join(__dirname, "..", "..", ".."))
-    },
+    }/*,
     proBPath: {
       title: "ProB path",
       description: "Path to ProB directory",
@@ -112,7 +110,7 @@ ${error}`,
       description: "ProB targets",
       type: "string",
       default: "TODO"
-    },
+    },*/
   },
 
   consumeIndie(registerIndie) {
