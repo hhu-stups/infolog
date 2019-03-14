@@ -33,7 +33,7 @@ export default class InfologClient {
         try {
           const parsedData = JSON.parse(message);
           callback(parsedData, this.originFiles[parsedData.id]);
-        } finally {
+        } catch(error) {
           // ignore incomplete message
         }
       });
