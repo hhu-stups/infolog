@@ -27,16 +27,16 @@ export default class InfologClient {
       });
     });
     this.client.on("data", (data) => {
-      this.triggers["response"].forEach((callback) => {
-        this.responseBuffer.push(data);
-        const message = Buffer.concat(this.responseBuffer);
-        try {
-          const parsedData = JSON.parse(message);
+      this.responseBuffer.push(data);
+      const message = Buffer.concat(this.responseBuffer);
+      try {
+        const parsedData = JSON.parse(message);
+        this.triggers["response"].forEach((callback) => {
           callback(parsedData, this.originFiles[parsedData.id]);
-        } catch(error) {
+        });
+      } catch(error) {
           // ignore incomplete message
-        }
-      });
+      }
     });
   }
 

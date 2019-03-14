@@ -146,12 +146,23 @@ json_to_codes(J, S) :-
 json_to_codes(J, S) :-
     atom(J),
     atom_codes(J, Codes),
-    append(["\"", Codes, "\""], S).
+    escape_chars(Codes, [], EscapedCodes),
+    append(["\"", EscapedCodes, "\""], S).
+
+escape_chars([H|T], Acc, Out) :-
+    [H] = "\\",
+    append([Acc, "\\", "\\"], Next),
+    escape_chars(T, Next, Out).
+escape_chars([H|T], Acc, Out) :-
+    append(Acc, [H], Next),
+    escape_chars(T, Next, Out).
+escape_chars([], Out, Out).
 
 %% Terms
 json_to_codes(J, S) :-
     compound(J),
     J =.. [_, Term, Arity],
     atom_codes(Term, TermCodes),
+    escape_chars(TermCodes, [], EscapedCodes),
     number_codes(Arity, ArityCodes),
-    append(["\"", TermCodes, "/", ArityCodes, "\""], S).
+    append(["\"", EscapedCodes, "/", ArityCodes, "\""], S).

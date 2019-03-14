@@ -70,8 +70,7 @@ ${error}`,
     this.progressPanel.destroy();
     this.progressView.destroy();
     this.infolog.killInfolog();
-    this.infolog.destroy();
-    this.infologClient.destroy();
+    this.infologClient.disconnect();
     this.linter.dispose();
     this.subscriptions.dispose();
   },
