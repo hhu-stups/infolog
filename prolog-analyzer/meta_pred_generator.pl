@@ -24,6 +24,7 @@ translate_meta_predicate_pattern(Pattern, Head, MetaArgList) :-
     
 gen_meta_arg_list([],_,[]).
 gen_meta_arg_list([N|T],Pos,[meta_arg(Pos,N)|MT]) :- number(N),!,
+    % TODO: also treat if N=':'
     P1 is Pos+1,
     gen_meta_arg_list(T,P1,MT).
 gen_meta_arg_list([_|T],Pos,MT) :- P1 is Pos+1, gen_meta_arg_list(T,P1,MT).
