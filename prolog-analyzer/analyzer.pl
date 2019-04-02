@@ -2179,7 +2179,7 @@ analyze_clause((:- multifile(X)), _Layout, Module, _File) :-
 analyze_clause(':-'(Body), Layout, Module, File) :- %portray_clause(query(Body,Layout)),
     !,
     layout_sub_term(Layout,2,LayoutSub,query(Module,File)),
-    safe_analyze_body(Body,LayoutSub,Module:':-'/1, no_dcg, [query]). % TO DO: check why this fails
+    safe_analyze_body(Body,LayoutSub,Module:':-'/1, no_dcg, [query, head/'$query']). % virtual head added
 
 analyze_clause((Head :- Body), Layout, Module, File) :-
     !, %portray_clause((Head :- Body)),
