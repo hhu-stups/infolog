@@ -5,12 +5,16 @@
                           add_infolog_error/1, add_infolog_error/2, infolog_internal_error/2,
                           unop/3, binop/4, ternop/5,
                           pairs_to_list/2,
-                          git_revision/1
+                          git_revision/1,
+                          format_with_colour/4,
+                          format_err/2, format_msg/2, format_warn/2,
+                          start_terminal_colour/2, reset_terminal_colour/1
                           ]).
 
 :- use_module(library(codesio),[format_to_codes/3]).
 
 % various utilities:
+
 
 % decompose location term
 decompose_location(module_lines(M,L1,L2),Mod,unknown,L1,L2) :- !,Mod=M.
@@ -87,3 +91,47 @@ git_revision(Sha) :-
    stream2code(S,Atom) :-
    read_line(S,Text),
    atom_codes(Atom,Text).   
+
+
+format_msg(Str,Args) :- format_with_colour(user_output,[blue],Str,Args).
+format_err(Str,Args) :- format_with_colour(user_error,[red,bold],Str,Args).
+format_warn(Str,Args) :- format_with_colour(user_output,[yellow,bold],Str,Args).
+
+format_with_colour(Stream,Colour,Str,Args) :-
+   start_terminal_colour(Colour,Stream),
+   call_cleanup(format(Stream,Str,Args),
+                 reset_terminal_colour(Stream)).
+
+:- use_module(library(system), [environ/2]).
+no_color :- environ('NO_COLOR',_). % see http://no-color.org
+reset_terminal_colour(_) :- no_color,!.
+reset_terminal_colour(Stream) :- write(Stream,'\e[0m').
+
+% see https://misc.flogisoft.com/bash/tip_colors_and_formatting
+start_terminal_colour(_,_) :- no_color,!.
+start_terminal_colour(red,Stream) :- !, write(Stream,'\e[31m').
+start_terminal_colour(green,Stream) :- !, write(Stream,'\e[32m').
+start_terminal_colour(yellow,Stream) :- !, write(Stream,'\e[33m').
+start_terminal_colour(blue,Stream) :- !, write(Stream,'\e[34m').
+start_terminal_colour(magenta,Stream) :- !, write(Stream,'\e[35m').
+start_terminal_colour(cyan,Stream) :- !, write(Stream,'\e[36m').
+start_terminal_colour(light_gray,Stream) :- !, write(Stream,'\e[37m').
+start_terminal_colour(dark_gray,Stream) :- !, write(Stream,'\e[90m').
+start_terminal_colour(light_red,Stream) :- !, write(Stream,'\e[91m').
+start_terminal_colour(light_green,Stream) :- !, write(Stream,'\e[92m').
+start_terminal_colour(white,Stream) :- !, write(Stream,'\e[97m').
+start_terminal_colour(bold,Stream) :- !, write(Stream,'\e[1m').
+start_terminal_colour(underline,Stream) :- !, write(Stream,'\e[4m').
+start_terminal_colour(dim,Stream) :- !, write(Stream,'\e[2m').
+start_terminal_colour(black_background,Stream) :- !, write(Stream,'\e[49m').
+start_terminal_colour(red_background,Stream) :- !, write(Stream,'\e[41m').
+start_terminal_colour(green_background,Stream) :- !, write(Stream,'\e[42m').
+start_terminal_colour(yellow_background,Stream) :- !, write(Stream,'\e[43m').
+start_terminal_colour(white_background,Stream) :- !, write(Stream,'\e[107m').
+start_terminal_colour(blink,Stream) :- !, write(Stream,'\e[5m').
+start_terminal_colour(reverse,Stream) :- !, write(Stream,'\e[7m').
+start_terminal_colour(hidden,Stream) :- !, write(Stream,'\e[8m').
+start_terminal_colour(reset,Stream) :- !, write(Stream,'\e[0m').
+start_terminal_colour([],_Stream) :- !.
+start_terminal_colour([H|T],Stream) :- !, start_terminal_colour(H,Stream),start_terminal_colour(T,Stream).
+start_terminal_colour(C,_Stream) :- format(user_error,'*** UNKNOWN COLOUR: ~w~n',[C]).

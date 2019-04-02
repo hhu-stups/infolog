@@ -123,7 +123,7 @@ export_to_file(Format,File,List) :- start_analysis_timer(TT),
    open(File,write,S),
     call_cleanup((start_file(Format,S,List),
 					maplist(export(Format,S), List),
-					end_file(Format,S)),close(S)), stop_analysis_timer(TT).
+					end_file(Format,S)),close(S)), stop_analysis_timer('Export',TT).
 
 %%
 % Exports all solutions for a given predicate to an open file of the given format.
@@ -249,17 +249,20 @@ update_problem_db :-
 update_problem_db(File) :- 
    start_analysis_timer(T1),
    load_problem_db(File),
-   stop_analysis_timer(T1),
+   stop_analysis_timer('Load Problem DB',T1),
    start_analysis_timer(T2),
    open(File,write,S), call_cleanup(gen_db_entries(S),close(S)),
-   stop_analysis_timer(T2).
+   stop_analysis_timer('Generating DB Entries',T2).
 
 /**
  * Load the problem database from a given location.
  * @param File the file name. */
 load_problem_db(File) :- 
-   on_exception(error(existence_error(_,_),_),ensure_loaded(File), format('Problem DB does not yet exist: ~w~n',[File])),
-   (problem_db_creation(S,D) -> format('Loaded problem_db ~w (Sha:~w,  ~w)~n',[File,S,D]) ; format('File empty: ~w~n',[File])).
+   on_exception(error(existence_error(_,_),_),ensure_loaded(File), 
+                  format_warn('% INFOLOG: Problem DB does not yet exist: ~w~n',[File])),
+   (problem_db_creation(S,D)
+    -> format_msg('% INFOLOG: Loaded problem_db ~w (Sha:~w,  ~w)~n',[File,S,D])
+     ; format_warn('% INFOLOG: problem_db file empty: ~w~n',[File])).
 
 :- dynamic problem_db_entry/8, problem_db_creation/2, problem_db_keep/6.
 % problem_db_entry(HashOfIssue,Category,Type,ErrorInfo,Location,Sha,Date,active/reviewed)
@@ -268,7 +271,9 @@ load_problem_db(File) :-
  * Avoid creating InfoLog warnings about the predicates listed in the infolog_predicate/3 facts.
  * @param Module the module name
  * @param F/N the predicate name and arity */
-infolog_predicate(Module,F/N) :- infolog_predicate(F,N,Module), print(excl(F,N,Module)),nl.
+infolog_predicate(Module,F/N) :- 
+  infolog_predicate(F,N,Module),
+  format_msg('% INFOLOG: Excluding ~w/~w in module ~w~n',[F,N,Module]).
 
 /**
  * Avoid creating InfoLog warnings about the predicates listed in these facts.
@@ -287,17 +292,18 @@ reviewed(Hash,Category,Type,ErrorInfo,Location) :-
 /**
  * Update problem database; display new and removed problems.
  * @param S the open output file */
-gen_db_entries(S) :-  print('Updating problem database and displaying new problems'),nl,
+gen_db_entries(S) :-  
+    format_msg('% INFOLOG: Updating problem database and displaying new problems~n',[]),
     format(S,'% INFOLOG DATABASE OF PROBLEMS~n',[]),
     git_revision(CurSha),
     datime(datime(Yr,Mon,Day,Hr,Min,Sec)),
-    format('Sha : ~w, Date : ~w~n',[CurSha,datime(Yr,Mon,Day,Hr,Min,Sec)]),
+    format_msg('% INFOLOG: Sha : ~w, Date : ~w~n',[CurSha,datime(Yr,Mon,Day,Hr,Min,Sec)]),
     format(S, '% Updated: Sha : ~w, Date : ~w~n~n',[CurSha,datime(Yr,Mon,Day,Hr,Min,Sec)]),
     format(S,':- dynamic problem_db_entry/8, problem_db_creation/2.~n~n~n',[]),
     (problem_db_creation(CrS,CrD) -> portray_clause(S,problem_db_creation(CrS,CrD))
       ; portray_clause(S,problem_db_creation(CurSha,datime(Yr,Mon,Day,Hr,Min,Sec)))
     ),
-    print('----'),nl, print('The following problems were added:'),nl,
+    format_warn('----~n% INFOLOG: The following problems were added:~n',[]),
     infolog_problem_hash(Category,Type,ErrorInfo,Location,Hash),
     (problem_db_entry(Hash, Category, Type, ErrorInfo,Location, OldSha,OldDatime,OldStatus)
      -> % error already exists
@@ -307,19 +313,21 @@ gen_db_entries(S) :-  print('Updating problem database and displaying new proble
      -> % error has moved
         Datime = OldDatime, NewSha = OldSha, Status = moved,
         assert_if_new(problem_db_keep(Hash,Category,Type,ErrorInfo,OldLocation,moved)),
-        format('Problem location has moved : ~w ',[Hash]), 
+        format_msg('Problem location has moved : ~w ',[Hash]), 
         print_location(OldLocation),print(' --> '), print_location(Location), nl
       ; Datime = datime(Yr,Mon,Day,Hr,Min,Sec), NewSha = CurSha, Status = active,
         display_problem(Type,ErrorInfo,Location,Hash)
      ),
      portray_clause(S, problem_db_entry(Hash, Category, Type, ErrorInfo,Location, NewSha,Datime,Status) ),
     fail.
-gen_db_entries(_) :- print('----'),nl, print('The following problems were removed:'),nl,
+gen_db_entries(_) :- 
+    format_msg('----~n% INFOLOG: The following problems were removed:~n',[]),
     problem_db_entry(Hash, Category, Type, ErrorInfo,Location, OldSha,OldDatime,_OldStatus),
     \+ problem_db_keep(Hash,Category,Type,ErrorInfo,Location,_),
-    display_problem(Type,ErrorInfo,Location,Hash), format('  ~w (~w)~n',[OldDatime,OldSha]),
+    display_problem(Type,ErrorInfo,Location,Hash),
+    format('  ~w (~w)~n',[OldDatime,OldSha]),
     fail.
-gen_db_entries(_) :- print('----'),nl.
+gen_db_entries(_) :- format_msg('----~n',[]).
 
 % =========================================
 
@@ -374,13 +382,14 @@ predicate_in(P,_) :- add_infolog_error(informat('Illegal predicate_in arg: ~w', 
  * @param Pred the predicate name
  * @param Arity the predicate arity
  * @param Module the containing module */
-predicate_in(A,B,C) :- nl,print('*** NOT COMPUTED  '),print(predicate_in(A,B,C)),nl,fail.
+predicate_in(A,B,C) :- format_err('~n*** NOT COMPUTED  ~w~n',[predicate_in(A,B,C)]),fail.
 
 /**
  * Generate facts for predicate_in/3 using predicate/2. */
 compute_indexing_facts :- retractall(predicate_in(_,_,_)),
     predicate(M,P),
-    (P=Pred/Arity -> assert(predicate_in(Pred,Arity,M)) ; add_infolog_error(informat('Illegal pred: ~w', [P]))),
+    (P=Pred/Arity -> assert(predicate_in(Pred,Arity,M))
+     ; add_infolog_error(informat('Illegal pred: ~w', [P]))),
     fail.
 compute_indexing_facts.
 
@@ -546,7 +555,10 @@ complexity :- findall(complexity(NestingLevel,Calls,M,P,SL,EL,Vs,Unif,EUnif),
 
 %%
 % Print infolog problems of type "error" to the console
-lint :- start_analysis_timer(T), print('Start checking'),nl,lint(error), stop_analysis_timer(T).
+lint :- start_analysis_timer(T), 
+        format_msg('%INFOLOG: Start LINT checking~n',[]),
+        lint(error),
+        stop_analysis_timer('Linting',T).
 
 %%
 % Print infolog problems of a given type to the console
@@ -578,12 +590,12 @@ lint(_,_,_) :- print('Done checking'),nl.
 % @param Location the problem location
 % @param Hash ?
 display_problem(Type,ErrorInfo,Location,Hash) :-
-     (Type=error -> start_red ; true),
+     (Type=error -> start_terminal_colour(red,user_output) ; true),
      format(' *** ',[]),
      print_information(ErrorInfo), print(' '),
      print_location(Location),
      format(' [[~w]]~n',[Hash]),
-     (Type=error -> reset_colors ; true).
+     (Type=error -> reset_terminal_colour(user_output) ; true).
 
 lint_for_pat(Pat) :- find_module(Pat,Module), lint_for_module(Module).
 
@@ -605,8 +617,10 @@ atom_matches(Pattern,Name) :- atom_codes(Pattern,Codes),
 %%
 % Export the found problems to a CSV file.
 % @param File the file name
-lint_to_csv_file(File) :- start_analysis_timer(T), format('Exporting to csv file: ~w~n',[File]),nl,
-                          open(File,write,S), call_cleanup(lint_to_csv_stream(S),close(S)), stop_analysis_timer(T).
+lint_to_csv_file(File) :- start_analysis_timer(T), 
+                          format_msg('Exporting to csv file: ~w~n',[File]),
+                          open(File,write,S), call_cleanup(lint_to_csv_stream(S),close(S)),
+                          stop_analysis_timer('Linting CSV',T).
 
 %%
 % Export the found problems to the console in CSV format
@@ -858,7 +872,7 @@ resolve_module_location_nondet(M,_,M).
 %%
 % Assert that the given module is defined; otherwise complain, but don't fail.
 % @param A the module name
-safe_defined_module(A) :- if(defined_module(A,_),true,format_red('*** Illegal module ~w~n',[A])).
+safe_defined_module(A) :- if(defined_module(A,_),true,format_err('*** Illegal module ~w~n',[A])).
 
 % --------------------------------------------
 
@@ -871,11 +885,13 @@ safe_defined_module(A) :- if(defined_module(A,_),true,format_red('*** Illegal mo
 
 %%
 % A wrapper for the dead code analysis in mode 'all', i.e. look at all not exported predicates whether they are used.
-dca :- print('Looking for internal predicates which are not used'),nl,dca(all),print_dca(all).
+dca :- format_msg('% INFOLOG: Looking for internal predicates which are not used~n',[]),
+       dca(all),print_dca(all).
 
 %%
 % A wrapper for the dead code analysis in mode 'cross', i.e. look at all exported predicates whether they are used by another module.
-dcax :- print('Looking for exported predicates which are not used'),nl, dca(cross),print_dca(cross).
+dcax :- format_msg('% INFOLOG: Looking for exported predicates which are not used~n',[]),
+   dca(cross),print_dca(cross).
 
 %%
 % A simple dead code analysis; will not detect groups of dead code predicates which call each other.
@@ -1324,7 +1340,7 @@ assert2(Pred,X,Y) :- binop(Fact,Pred,X,Y), assert_if_new(Fact).
 compute_cycles :- retractall(depends_on_transitive(_,_)),
     start_analysis_timer(T1),
     transitive_closure(depends_on,depends_on_transitive),
-    stop_analysis_timer(T1),
+    stop_analysis_timer('Compute Cycles',T1),
     (depends_on_transitive(A,A), format('Cyclic dependency: ~w~n',[A]),fail ; true).
 
 :- dynamic calling_transitive/2.
@@ -1337,7 +1353,7 @@ compute_cycles :- retractall(depends_on_transitive(_,_)),
 compute_call_cycles(From,Call) :- retractall(calling_transitive(_,_)),
     start_analysis_timer(T1),
     transitive_closure(calling(From:Call,_),calling,calling_transitive),
-    stop_analysis_timer(T1),
+    stop_analysis_timer('Compute Call Cycles',T1),
     (calling_transitive(A,B), format('Dependency: ~w -> ~w~n',[A,B]),fail ; true).
 
 %%
@@ -1361,7 +1377,7 @@ compute_intra_module_dependence(Module,Calls,SList) :-
     start_analysis_timer(T1),
     transitive_closure(calling_in_same_module_from(Module:_,_,Calls),
                        calling_in_same_module,calling_transitive),
-    stop_analysis_timer(T1),
+    stop_analysis_timer('Interamodule Dependency',T1),
     findall(P2,calling_transitive(_,_:P2),List),
     sort(List,SList).
 
@@ -1489,7 +1505,7 @@ analyze_clj(InputFile,OutputFile) :-
     print(exporting(OutputFile)),nl,
     start_analysis_timer(T3),
     export_to_clj_file(OutputFile),
-    stop_analysis_timer(T3).
+    stop_analysis_timer('Analyze_CLJ',T3).
 
 
 %%
@@ -1502,10 +1518,10 @@ analyze(InputFiles,CacheFile,TclCallFile) :-
     load_call_file(TclCallFile),
     catch(ensure_loaded('documentation.pl'),_,
        catch(ensure_loaded('prolog-analyzer/documentation.pl'),_,
-         format('Documentation coverage data could not be loaded.~n',[]))),
+         format_warn('% INFOLOG: Documentation coverage data could not be loaded.~n',[]))),
     analyse_files(InputFiles),
     (meta_user_pred_cache_needs_updating -> write_meta_user_pred_cache(CacheFile)
-     ; format('INFOLOG: meta_predicate cache up-to-date.~n',[])).
+     ; format_msg('% INFOLOG: meta_predicate cache up-to-date.~n',[])).
 
 %%
 % A simpler variant of analyze/2. Uses a default path for the cache.
@@ -1513,16 +1529,16 @@ analyze(InputFiles,CacheFile,TclCallFile) :-
 analyze(InputFiles) :- analyze(InputFiles,'','').
 
 load_cache_file('') :- !,
-   format('~nINFOLOG: No meta_predicate cache file provided; analysis will be imprecise.~n',[]).
+   format_warn('% INFOLOG: No meta_predicate cache file provided; analysis will be imprecise.~n',[]).
 load_cache_file(File) :-
-   format('~nINFOLOG: Loading meta_predicate cache file ~w~n',[File]),
+   format_msg('% INFOLOG: Loading meta_predicate cache file ~w~n',[File]),
    catch(ensure_loaded(File),_,format(user_error,'### File ~w could not be loaded.~n',[File])).
 
 load_call_file('') :- !,
-   format('~nINFOLOG: No external call file provided; dead code analysis will be imprecise.~n',[]).
+   format_warn('% INFOLOG: No external call file provided; dead code analysis will be imprecise.~n',[]).
 load_call_file(File) :-
-  format('~nINFOLOG: Loading external (Tcl/...) call file ~w~n',[File]),
-   catch(ensure_loaded(File),_,format(user_error,'### File ~w could not be loaded.~n',[File])).
+  format_msg('% INFOLOG: Loading external (Tcl/...) call file ~w~n',[File]),
+   catch(ensure_loaded(File),_,format_err('### File ~w could not be loaded.~n',[File])).
 
 
 
@@ -1532,30 +1548,28 @@ load_call_file(File) :-
 % @caution it's analyse_files, not analyze_files. #typodanger
 % @param InputFiles a list of files to analyze
 analyse_files(InputFiles) :-
-    format('~nINFOLOG: Starting analysis for: ~w~n',[InputFiles]),
+    format_msg('~n% INFOLOG: Starting analysis for: ~w~n',[InputFiles]),
     start_analysis_timer(T0),
-    print('INFOLOG: precompiling library_modules'),nl,
+    format_msg('% INFOLOG: precompiling library_modules',[]),nl,
     precompile_library_modules,
-    stop_analysis_timer(T0),
-    format('INFOLOG: loading modules: ~w~n',[InputFiles]),
+    stop_analysis_timer('Precompiling Library Modules',T0),
+    format_msg('% INFOLOG: loading modules: ~w~n',[InputFiles]),
     start_analysis_timer(T1),
     use_source_modules(InputFiles),
-    nl,
-    stop_analysis_timer(T1),
-    nl, print('INFOLOG: updating calls'), nl,
+    stop_analysis_timer('Reading Source Modules',T1),
+    format_msg('% INFOLOG: updating calls~n',[]),
     start_analysis_timer(T2),
-    update,
+    update_call_module_info,
     compute_indexing_facts,
-    stop_analysis_timer(T2),
-    nl.
+    stop_analysis_timer('Updating Call Information',T2).
 
 %%
 % Load one ore more source modules.
 % @param Files a module name or a list of module names
 use_source_modules([]) :- !.
-use_source_modules([H|T]) :- !, format('~nINFOLOG: loading module: ~w~n',[H]),
+use_source_modules([H|T]) :- !, format_msg('% INFOLOG: loading module: ~w~n',[H]),
                                 use_module(H),
-                                format('~nINFOLOG: finished loading module: ~w~n',[H]),
+                                format_msg('% INFOLOG: finished loading module: ~w~n',[H]),
                                 use_source_modules(T).
 use_source_modules(M) :- use_module(M).
 
@@ -1570,14 +1584,15 @@ start_analysis_timer(timer(R,T,W)) :- statistics(runtime,[R,_]),
 % Show the time passed since the initialization of the timer.
 % @param Timer the started timer
 % @sideeffect print prints the time difference
-stop_analysis_timer(T) :- stop_analysis_timer(T,[runtime/RT,total_runtime/RTT,walltime/WT]),
-                          format('% INFOLOG: Analysis Runtime: ~w ms (total: ~w ms, walltime: ~w ms)~n',[RT,RTT,WT]).
+stop_analysis_timer(MSG,T) :- 
+   stop_analysis_timer2(T,[runtime/RT,total_runtime/RTT,walltime/WT]),
+   format_msg('% INFOLOG: ~w Runtime: ~w ms (total: ~w ms, walltime: ~w ms)~n',[MSG,RT,RTT,WT]).
 
 %%
 % Compute the time difference since the initialization of the time.
 % @param Timer the started timer
 % @param Results the resulting time differences
-stop_analysis_timer(timer(R,T,W),[runtime/RT,total_runtime/RTT,walltime/WT]) :-!,
+stop_analysis_timer2(timer(R,T,W),[runtime/RT,total_runtime/RTT,walltime/WT]) :-!,
    statistics(runtime,[RE,_]),
    statistics(total_runtime,[TE,_]),
    statistics(walltime,[WE,_]),
@@ -1644,11 +1659,12 @@ layout_sub_term(Layout,Position,Result) :- layout_sub_term(Layout,Position,Resul
 % @param Position index of the wanted term
 % @param Result the result term
 % @param Loc location of the caller
-layout_sub_term([],N,[],Loc) :- !, format('~n*** Could not obtain layout information (position ~w) at ~w.~n',[N,Loc]).
+layout_sub_term([],N,[],Loc) :- !,
+    format_warn('~n*** Could not obtain layout information (position ~w) at ~w.~n',[N,Loc]).
 layout_sub_term([H|T],N,Res,Loc) :- !,
     (N=<1 -> Res=H ; N1 is N-1, layout_sub_term(T,N1,Res,Loc)).
 layout_sub_term(Term,N,Res,Loc) :-
-    format('~n*** Virtual position: ~w~n',[layout_sub_term(Term,N,Res,Loc)]), % can happen when add_args adds new positions which did not exist
+    format_warn('~n*** Virtual position: ~w~n',[layout_sub_term(Term,N,Res,Loc)]), % can happen when add_args adds new positions which did not exist
     Res=Term.
 
 %%
@@ -1698,9 +1714,9 @@ assert_unresolved_meta_call(VariableCall,ExtraArgs,Layout,CallingPredicate,DCG,I
     %format('**add meta_call: Head = ~w, ~n ~w~n',[ClauseHead,meta_call(CM,CP,VariableCall,ExtraArgs2,ClauseHead, StartLine, EndLine)]),
     assert_if_not_covered(meta_call(CM,CP,VariableCall,ExtraArgs2,ClauseHead, StartLine, EndLine)).
 assert_unresolved_meta_call(VariableCall,ExtraArgs,Layout,CallingPredicate,DCG,Info) :-
-    format_red('*** ERROR: ~w~n',[assert_unresolved_meta_call(VariableCall,ExtraArgs,Layout,CallingPredicate,DCG,Info)]),
+    format_err('! INFOLOG: ERROR: ~w~n',[assert_unresolved_meta_call(VariableCall,ExtraArgs,Layout,CallingPredicate,DCG,Info)]),
     get_position(Layout, StartLine, EndLine),
-    format_red('*** LINES: ~w-~w~n',[StartLine,EndLine]).
+    format_err('! INFOLOG: LINES: ~w-~w~n',[StartLine,EndLine]).
 
      % calling(cmodule,cname/carity, module,name/arity, startline, endline)
 assert_call(CallingPredicate, Predicate, Layout, DCG) :-
@@ -1896,7 +1912,7 @@ gen_user(_).
 add_meta_predicate(Module,Pattern) :-
    translate_meta_predicate_pattern(Pattern,Head,MetaArgList),
    (meta_user_pred(Head,Module,MetaArgList) -> true
-     ; format('~nINFOLOG: Adding meta_user_pred(~w,~w,~w)~n',[Head,Module,MetaArgList]),
+     ; format('% INFOLOG: Adding meta_user_pred(~w,~w,~w)~n',[Head,Module,MetaArgList]),
        assert(meta_user_pred(Head,Module,MetaArgList)),
        (meta_user_pred_cache_needs_updating -> true
         ; assert(meta_user_pred_cache_needs_updating),
@@ -1960,7 +1976,7 @@ meta_built_in_pred(do(_,_),built_in,[meta_arg(2,0)]).
 
 analyze_sub_arg(DModule:META,MODULE, Layout, CallingPredicate, Info, meta_arg(Nr,ADD) ) :- !,
   (DModule=MODULE -> true /* user provided additional module prefix; peel it off */
-    ; format_red('*** Module prefix mismatch: ~w:~w (expected ~w)~n',[DModule,META,MODULE])),
+    ; format_err('*** Module prefix mismatch: ~w:~w (expected ~w)~n',[DModule,META,MODULE])),
    % we need to peel off layout to get to META:
    layout_sub_term(Layout,3,LayoutM,analyze_sub_arg_meta(CallingPredicate,Info)),
    analyze_sub_arg(META, MODULE, LayoutM, CallingPredicate, Info, meta_arg(Nr,ADD) ).
@@ -2228,7 +2244,7 @@ analyze_clause_complexity(Module,Predicate,_Head,Body,Layout) :-
 %      format('Halstead complexity ~w, ~w, ~w, ~w~n',[OperatorOcc,OperandOcc,OperatorCount,OperandCount]),
       assert(clause_halstead(Module,Predicate,StartLine,EndLine,OperatorOcc,OperandOcc,OperatorCount,OperandCount)),
       assert(clause_complexity(Module,Predicate,NestingLevel,Calls,StartLine,EndLine,VarCount,Unifications,ExplicitUnifications))
-   ;  format_red('*** Computing clause complexity failed: ~w (~w-~w)~n',[Module,StartLine,EndLine])).
+   ;  format_err('*** Computing clause complexity failed: ~w (~w-~w)~n',[Module,StartLine,EndLine])).
 
 %%
 % DCG for accumulationg the complexity of a clause body (see analyze_clause_complexity/5)
@@ -2483,7 +2499,7 @@ built_in_call(format(_,_,_)).
 % @param PR the extracted predicate name
 % @sideeffect print prints an error message on failure
 decompose_call(M:P,MR,PR) :- !,decompose_call2(P,M,MR,PR). 
-decompose_call(P,module_yet_unknown,P) :- format_red('*** Unknown Module for ~w~n',[P]).
+decompose_call(P,module_yet_unknown,P) :- format_err('*** Unknown Module for ~w~n',[P]).
 
 %%
 % Peel off all : module constructors
@@ -2522,19 +2538,19 @@ get_module(Name, Arity, CallingModule, Module, Loc) :-
 
 %%
 % Correct the module names in calling/6 and stored_call/4. No 'module_yet_unknown' shall remain.
-update :-
+update_call_module_info :-
     retract(calling(CallingModule,CallingPred, module_yet_unknown,Name/Arity, Start, End)),
     get_module(Name, Arity, CallingModule, Module, module_pred_lines(CallingModule,CallingPred,Start,End)),
     assert_if_new(predicate(Module,Name/Arity)),
     assert_if_new(calling(CallingModule,CallingPred, Module,Name/Arity, Start, End)),
     fail.
-update :- retract(stored_call(module_yet_unknown,Call,FromModule,Layout)),
+update_call_module_info :- retract(stored_call(module_yet_unknown,Call,FromModule,Layout)),
     functor(Call,Name,Arity),
     get_position(Layout,SL,EL),
     get_module(Name, Arity, FromModule, Module, module_lines(FromModule,SL,EL)),
     assert_if_new(stored_call(Module,Call,FromModule,Layout)),
     fail.
-update.
+update_call_module_info.
 
 :- multifile user:term_expansion/6.
 :- dynamic seen_token/0.
@@ -2546,16 +2562,9 @@ update.
 
 safe_analyze_clause(Term,Layout,Module,File) :-
     if(analyze_clause(Term,Layout,Module,File),true,
-       format_red('~n*** Analyzing Clause for ~w Failed: ~w~n~n',[Module,Term])).
+       format_err('~n*** Analyzing Clause for ~w Failed: ~w~n~n',[Module,Term])).
 
 
-start_red :- write(user_output,'\e[31m').
-start_blue :- write(user_output,'\e[34m').
-start_bold :- write(user_output,'\e[1m').
-reset_colors :- write(user_output,'\e[0m').
-print_red(Term) :-
-   format('\e[31m~w\e[0m',[Term]).
-format_red(Str,Args) :- start_red, start_bold, format(Str,Args), reset_colors.
 
 %%
 % Interpreter magic. Sicstus calls this predicate when encountering a clause.
