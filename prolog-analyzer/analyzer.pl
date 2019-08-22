@@ -2466,7 +2466,8 @@ store_clause(DCG,Module,Head,Body,Layout) :- retract(next_stored_clause_nr(N)),!
 % TO DO: deal with DCG BODY
 store_clause(_,_,_,_,_).
 
-% optionally store actual calls; not just pred/arity
+% optionally store actual call terms; not just pred/arity
+% see also calling/6 which stores all calls but just pred/arity
 store_call(_,_,_,_) :- \+ next_stored_clause_nr(_),!. % storing disabled
 store_call(no_dcg,Builtin,_,_) :- built_in_call(Builtin),!.
 store_call(DCG,Module:Call,Layout,FromModule) :- !,
@@ -2552,6 +2553,28 @@ update_call_module_info :- retract(stored_call(module_yet_unknown,Call,FromModul
     fail.
 update_call_module_info.
 
+
+% -----------------------------------
+% some utilities
+
+% print which predicates should be exported
+print_module_header(M) :-
+  format(':- module(~w,[~n',[M]),
+  predicate(M,P/N), 
+  (useful_to_export(M,P,N) -> true),
+  \+ (predicate(M2,P/N), M2 \= M),
+  format('   ~w/~w,~n',[P,N]),fail.
+print_module_header(_M) :-
+  format('   ]).~n',[]).
+
+%useful_to_export(M,P,N) :- is_public(M,P/N).
+useful_to_export(M,P,N) :- is_imported(_,M,P/N).
+%useful_to_export(M,P,N) :- stored_call(_,M,P/N).
+useful_to_export(M,P,N) :- calling(From,_,M,P/N,_SL,_EL), From \= M.
+useful_to_export(M,P,_N) :- tcltk_call(P/_,M,_,_).
+
+% -----------------------------------
+
 :- multifile user:term_expansion/6.
 :- dynamic seen_token/0.
 
@@ -2616,6 +2639,7 @@ infolog_help :-
   print('INFOLOG ENTRY: compute_call_cycles(From,Call) - compute cyclic call dependencies'),nl,
   print('INFOLOG ENTRY: pred_links(Module,Predicate) - compute cyclic call dependencies'),nl,
   print('INFOLOG ENTRY: pu(Module) - print required use_module directives'),nl,
+  print('INFOLOG ENTRY: print_module_header(Module) - print required export module directive'),nl,
   print('INFOLOG ENTRY: print_uia - print useless use_module directives'),nl,
   print('INFOLOG ENTRY: print_reexports - print predicates re-exported'),nl,
   print('INFOLOG ENTRY: dca - dead code analysis'),nl,
