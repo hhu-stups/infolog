@@ -55,6 +55,7 @@ public class DirectoryTraverser {
                 predicates = j;
             }
             String modname = p.isModule() ? p.getModuleName() : infile.getName();
+            // System.out.println("  found module: "+modname);
             IndexStore.get().addModule(modname,
                                        infile.getPath(),
                                        outfile.getPath());

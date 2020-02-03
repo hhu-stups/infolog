@@ -36,6 +36,7 @@ public class Joiner implements Iterable<Predicate> {
 
         try {
             for(Chunk chunk : source) {
+                // System.out.println("chunk : " + chunk);
                 switch(chunk.getChunkType()) {
                 case LineComment:
                     blockComment = null;

@@ -340,7 +340,7 @@ public class Parser implements Iterable<Chunk> {
     protected void skipClauseBody() {
         skipWhite();
         while(peek() != '.' && !iseof) {
-            if (peek() == ',') {
+            if (peek() == ',' || peek() == ')') {
                 advance();
                 skipWhite();
             }

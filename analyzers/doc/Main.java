@@ -96,6 +96,7 @@ public class Main {
                 Preferences.get().setProblemsCsvFilePath(problemsCsv);
 
                 // Actually do something!
+                System.out.println("Generating documentation for "+inpath);
                 DirectoryTraverser trav = new DirectoryTraverser(inpath,outpath);
                 trav.process();
             }
