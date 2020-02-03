@@ -41,6 +41,7 @@ public class DirectoryTraverser {
     
     private void process(File infile, File outfile) throws IOException {
         if(infile.isFile()) {
+            System.out.println("Processing file " + infile + " -> " + outfile);
             Parser p = new Parser(infile.getName(), new FileReader(infile));
             GeneratorFactory factory = Preferences.get().getGeneratorFactory();
             Iterable<Predicate> predicates;
@@ -78,6 +79,8 @@ public class DirectoryTraverser {
                     process(f, outdir);
                 }
             }
+        } else {
+            throw new java.io.FileNotFoundException("Could not find file or directory: " + infile);
         }
     }
 

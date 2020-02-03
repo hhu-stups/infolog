@@ -122,7 +122,7 @@ cp_tcltk_calls: $(PROBINFODIR)/tcltk_calls.pl
 prolog-analyzer/meta_preds.pl: prolog-analyzer/meta_pred_generator.pl
 	sicstus -l prolog-analyzer/meta_pred_generator.pl --goal "tell('prolog-analyzer/meta_preds.pl'),gen,told,halt."
 
-analyzers/doc.jar:
+analyzers/doc.jar: analyzers/doc/de/hhu/infolog/doc/*.java
 	javac analyzers/doc/Main.java analyzers/doc/de/hhu/infolog/doc/*.java
 	cd analyzers/doc; jar cfm ../doc.jar Manifest.txt *.class de/hhu/infolog/doc/*.class
 
