@@ -1,13 +1,13 @@
 :- dynamic java_call/2.
+java_call(activate_plugin,"/Users/leuschel/git_root/JAVAPROB/java_prob2/obsolete/ActivateUnitPluginCommand.java").
+java_call(get_plugin_output,"/Users/leuschel/git_root/JAVAPROB/java_prob2/obsolete/GetPluginResultCommand.java").
 java_call(get_op_from_id,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/statespace/GetOpFromId.java").
 java_call(list_all_eclipse_preferences,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/GetDefaultPreferencesCommand.java").
 java_call(get_error_messages,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/GetErrorsCommand.java").
 java_call(evaluate_formula_typecheck,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/FormulaTypecheckCommand.java").
-java_call(get_machine_formulas,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/GetMachineStructureCommand.java").
 java_call(load_cspm_spec_from_cspm_file,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/LoadCSPCommand.java").
 java_call(start_animation,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/StartAnimationCommand.java").
 java_call(load_xtl_spec_from_prolog_file,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/LoadXTLCommand.java").
-java_call(activate_plugin,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/ActivateUnitPluginCommand.java").
 java_call(load_classical_b_from_list_of_facts,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/LoadRulesProjectCommand.java").
 java_call(evaluate_formula,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/EvaluateFormulaCommand.java").
 java_call(get_animation_image_matrix_for_state,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/GetAnimationMatrixForStateCommand.java").
@@ -18,9 +18,12 @@ java_call(get_possible_completions,"/Users/leuschel/git_root/JAVAPROB/java_prob2
 java_call(get_transition_diagram,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/GetTransitionDiagramCommand.java").
 java_call(prob2_execute_custom_operations,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/GetOperationByPredicateCommand.java").
 java_call(get_machine_identifiers,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/GetMachineIdentifiersCommand.java").
+java_call(get_top_level_formulas,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/GetTopLevelFormulasCommand.java").
+java_call(register_prob2_formulas,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/RegisterFormulasCommand.java").
 java_call(get_animation_image_list,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/GetImagesForMachineCommand.java").
 java_call(write_dotty_transition_diagram,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/GetDottyForTransitionDiagramCmd.java").
 java_call(load_alloy_spec_from_term,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/LoadAlloyTermCommand.java").
+java_call(load_z_spec_from_tex_file,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/LoadZCommand.java").
 java_call(es_copy_from_statespace,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/EvalstoreCreateByStateCommand.java").
 java_call(op_timeout_occurred,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/GetOperationsWithTimeout.java").
 java_call(deserialize,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/DeserializeStateCommand.java").
@@ -41,8 +44,9 @@ java_call(get_pretty_print,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob
 java_call(cbc_solve_with_opts,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/CbcSolveCommand.java").
 java_call(filter_states_for_predicate,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/FilterStatesForPredicateCommand.java").
 java_call(serialize,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/SerializeStateCommand.java").
-java_call(get_plugin_output,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/GetPluginResultCommand.java").
+java_call(get_pretty_print_unicode,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/GetInternalRepresentationPrettyPrintUnicodeCommand.java").
 java_call(compute_efficient_statespace_stats,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/ComputeStateSpaceStatsCommand.java").
+java_call(prob2_find_test_path,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/FindTestPathCommand.java").
 java_call(get_animation_image_matrix_for_state,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/GetImagesForStateCommand.java").
 java_call(get_machine_files,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/GetAllUsedFilenamesCommand.java").
 java_call(get_dot_commands_in_state,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/GetAllDotCommands.java").
@@ -80,3 +84,4 @@ java_call(get_enable_matrix,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.pro
 java_call(get_machine_operation_infos,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/GetMachineOperationInfos.java").
 java_call(find_trace_from_node_to_node,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/FindTraceBetweenNodesCommand.java").
 java_call(execute_model,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/animator/command/ExecuteModelCommand.java").
+java_call(start_synthesis_from_ui_,"/Users/leuschel/git_root/JAVAPROB/java_prob2/de.prob2.kernel/src/main/java/de/prob/synthesis/BSynthesisCommand.java").
