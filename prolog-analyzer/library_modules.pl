@@ -30,6 +30,7 @@ is_library_module(fastrw).
 is_library_module(file_systems).
 is_library_module(gauge).
 is_library_module(heaps).
+is_library_module(json).
 is_library_module(lists).
 is_library_module(ordsets).
 is_library_module(plunit).
@@ -375,7 +376,7 @@ library_module(file_systems, [
 	% library(filename) has NOT been merged in
    ]).
 library_module(gauge, [
-	view/0]).		
+	view/0]).
 library_module(heaps, [
 	add_to_heap/4,		%   Heap x Key x Datum -> Heap
 	empty_heap/1,		%   -> Heap
@@ -389,6 +390,13 @@ library_module(heaps, [
 	min_of_heap/5,		%   Heap -> (Key x Datum) x (Key x Datum)
 	portray_heap/1		%   Heap ->
    ]).
+library_module(json, [
+	is_json_term/1,
+	is_json_term/2,
+	json_read/2,
+	json_read/3,
+	json_write/2,
+	json_write/3]).
 library_module(lists, [
 	% library(sets), should have been library(basic)
 	select/3,		%  Elem <- Set -> Set
@@ -770,7 +778,12 @@ library_module(ugraphs, [
 	reduce/2,
 	reachable/3,
 	random_ugraph/3,
-	min_tree/3
+	min_tree/3,
+	
+	%internal:
+	fanin_counts/2,
+	get_top_elements/4,
+	dec_counts/7
    ]).
 library_module(varnumbers, [
 	numbervars/1,
