@@ -2078,6 +2078,8 @@ x_unwrap_module(smtlib_solver(X),Y) :- !, remove_opt_path(X,Y).
 x_unwrap_module(symbolic_model_checker(X),Y) :- !, remove_opt_path(X,Y).
 x_unwrap_module(prob_rewrite_rules(X),Y) :- !, remove_opt_path(X,Y).
 x_unwrap_module(extension(E),Y) :- !, remove_opt_path(E,Y).
+x_unwrap_module(wdsrc(X),Y) :- !, remove_opt_path(X,Y).
+x_unwrap_module(synthesis(X),Y) :- !, remove_opt_path(X,Y).
 x_unwrap_module(Path,X) :- atom(Path),
     atom_chars(Path,PathChars),
     ( append(Base,[.,p,l],PathChars),
